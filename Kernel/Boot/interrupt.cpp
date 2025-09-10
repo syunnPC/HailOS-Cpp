@@ -1,0 +1,367 @@
+#include "interrupt.hpp"
+#include "basetype.hpp"
+#include "common.hpp"
+#include "ps2mouse.hpp"
+#include "ps2kbd.hpp"
+#include "pic.hpp"
+
+#define DEFINE_HANDLER(vec) __attribute__((interrupt)) void handler##vec(HailOS::Kernel::Boot::InterruptFrame* frame){HailOS::Kernel::Boot::handler(frame, vec);}
+#define DEFINE_HANDLER_ERRORCODE(vec)  __attribute__((interrupt)) void handler##vec(HailOS::Kernel::Boot::InterruptFrame* frame, u64 errorcode){HailOS::Kernel::Boot::handlerErrorCode(frame, vec, errorcode);}
+
+namespace HailOS::Kernel::Boot
+{
+    void handler(InterruptFrame* frame, u64 vec)
+    {
+        PANIC(static_cast<Status>(0xC0004000 + vec), frame->RIP, frame->RSP, frame->CS, frame->SS);
+    }
+    
+    void handlerErrorCode(InterruptFrame* frame, u64 vec, u64 errorcode)
+    {
+        PANIC(static_cast<Status>(0xC0004000 + vec), frame->RIP, frame->RSP, frame->CS, errorcode);
+    }
+
+    __attribute__((naked)) void isrKeyboard(void)
+    {
+        asm volatile(
+            "push %rax\n\t"
+            "push %rcx\n\t"
+            "push %rdx\n\t"
+            "push %rsi\n\t"
+            "push %rdi\n\t"
+            "push %rbx\n\t"
+            "push %rbp\n\t"
+            "push %r8\n\t"
+            "push %r9\n\t"
+            "push %r10\n\t"
+            "push %r11\n\t"
+            "push %r12\n\t"
+            "push %r13\n\t"
+            "push %r14\n\t"
+            "push %r15\n\t"
+
+            "call keyboardHandler\n\t"
+
+            "pop %r15\n\t"
+            "pop %r14\n\t"
+            "pop %r13\n\t"
+            "pop %r12\n\t"
+            "pop %r11\n\t"
+            "pop %r10\n\t"
+            "pop %r9\n\t"
+            "pop %r8\n\t"
+            "pop %rbp\n\t"
+            "pop %rbx\n\t"
+            "pop %rdi\n\t"
+            "pop %rsi\n\t"
+            "pop %rdx\n\t"
+            "pop %rcx\n\t"
+            "pop %rax\n\t"
+
+            "iretq\n\t"
+        );
+    }
+
+    __attribute__((naked)) void isrMouse(void)
+    {
+        asm volatile(
+            "push %rax\n\t"
+            "push %rcx\n\t"
+            "push %rdx\n\t"
+            "push %rsi\n\t"
+            "push %rdi\n\t"
+            "push %rbx\n\t"
+            "push %rbp\n\t"
+            "push %r8\n\t"
+            "push %r9\n\t"
+            "push %r10\n\t"
+            "push %r11\n\t"
+            "push %r12\n\t"
+            "push %r13\n\t"
+            "push %r14\n\t"
+            "push %r15\n\t"
+
+            "call mouseHandler\n\t"
+
+            "pop %r15\n\t"
+            "pop %r14\n\t"
+            "pop %r13\n\t"
+            "pop %r12\n\t"
+            "pop %r11\n\t"
+            "pop %r10\n\t"
+            "pop %r9\n\t"
+            "pop %r8\n\t"
+            "pop %rbp\n\t"
+            "pop %rbx\n\t"
+            "pop %rdi\n\t"
+            "pop %rsi\n\t"
+            "pop %rdx\n\t"
+            "pop %rcx\n\t"
+            "pop %rax\n\t"
+
+            "iretq\n\t"
+        );
+    }
+
+    void isrIRQ7(void)
+    {
+        IO::PIC::sendEOI(7);
+        return;
+    }
+
+    DEFINE_HANDLER(0)
+    DEFINE_HANDLER(1)
+    DEFINE_HANDLER(2)
+    DEFINE_HANDLER(3)
+    DEFINE_HANDLER(4)
+    DEFINE_HANDLER(5)
+    DEFINE_HANDLER(6)
+    DEFINE_HANDLER(7)
+    DEFINE_HANDLER_ERRORCODE(8)
+    DEFINE_HANDLER(9)
+    DEFINE_HANDLER_ERRORCODE(10)
+    DEFINE_HANDLER_ERRORCODE(11)
+    DEFINE_HANDLER_ERRORCODE(12)
+    DEFINE_HANDLER_ERRORCODE(13)
+    DEFINE_HANDLER_ERRORCODE(14)
+    DEFINE_HANDLER(15)
+    DEFINE_HANDLER(16)
+    DEFINE_HANDLER_ERRORCODE(17)
+    DEFINE_HANDLER(18)
+    DEFINE_HANDLER(19)
+    DEFINE_HANDLER(20)
+    DEFINE_HANDLER(21)
+    DEFINE_HANDLER(22)
+    DEFINE_HANDLER(23)
+    DEFINE_HANDLER(24)
+    DEFINE_HANDLER(25)
+    DEFINE_HANDLER(26)
+    DEFINE_HANDLER(27)
+    DEFINE_HANDLER(28)
+    DEFINE_HANDLER(29)
+    DEFINE_HANDLER_ERRORCODE(30)
+    DEFINE_HANDLER(31)
+    DEFINE_HANDLER(32)
+    DEFINE_HANDLER(33)
+    DEFINE_HANDLER(34)
+    DEFINE_HANDLER(35)
+    DEFINE_HANDLER(36)
+    DEFINE_HANDLER(37)
+    DEFINE_HANDLER(38)
+    DEFINE_HANDLER(39)
+    DEFINE_HANDLER(40)
+    DEFINE_HANDLER(41)
+    DEFINE_HANDLER(42)
+    DEFINE_HANDLER(43)
+    DEFINE_HANDLER(44)
+    DEFINE_HANDLER(45)
+    DEFINE_HANDLER(46)
+    DEFINE_HANDLER(47)
+    DEFINE_HANDLER(48)
+    DEFINE_HANDLER(49)
+    DEFINE_HANDLER(50)
+    DEFINE_HANDLER(51)
+    DEFINE_HANDLER(52)
+    DEFINE_HANDLER(53)
+    DEFINE_HANDLER(54)
+    DEFINE_HANDLER(55)
+    DEFINE_HANDLER(56)
+    DEFINE_HANDLER(57)
+    DEFINE_HANDLER(58)
+    DEFINE_HANDLER(59)
+    DEFINE_HANDLER(60)
+    DEFINE_HANDLER(61)
+    DEFINE_HANDLER(62)
+    DEFINE_HANDLER(63)
+    DEFINE_HANDLER(64)
+    DEFINE_HANDLER(65)
+    DEFINE_HANDLER(66)
+    DEFINE_HANDLER(67)
+    DEFINE_HANDLER(68)
+    DEFINE_HANDLER(69)
+    DEFINE_HANDLER(70)
+    DEFINE_HANDLER(71)
+    DEFINE_HANDLER(72)
+    DEFINE_HANDLER(73)
+    DEFINE_HANDLER(74)
+    DEFINE_HANDLER(75)
+    DEFINE_HANDLER(76)
+    DEFINE_HANDLER(77)
+    DEFINE_HANDLER(78)
+    DEFINE_HANDLER(79)
+    DEFINE_HANDLER(80)
+    DEFINE_HANDLER(81)
+    DEFINE_HANDLER(82)
+    DEFINE_HANDLER(83)
+    DEFINE_HANDLER(84)
+    DEFINE_HANDLER(85)
+    DEFINE_HANDLER(86)
+    DEFINE_HANDLER(87)
+    DEFINE_HANDLER(88)
+    DEFINE_HANDLER(89)
+    DEFINE_HANDLER(90)
+    DEFINE_HANDLER(91)
+    DEFINE_HANDLER(92)
+    DEFINE_HANDLER(93)
+    DEFINE_HANDLER(94)
+    DEFINE_HANDLER(95)
+    DEFINE_HANDLER(96)
+    DEFINE_HANDLER(97)
+    DEFINE_HANDLER(98)
+    DEFINE_HANDLER(99)
+    DEFINE_HANDLER(100)
+    DEFINE_HANDLER(101)
+    DEFINE_HANDLER(102)
+    DEFINE_HANDLER(103)
+    DEFINE_HANDLER(104)
+    DEFINE_HANDLER(105)
+    DEFINE_HANDLER(106)
+    DEFINE_HANDLER(107)
+    DEFINE_HANDLER(108)
+    DEFINE_HANDLER(109)
+    DEFINE_HANDLER(110)
+    DEFINE_HANDLER(111)
+    DEFINE_HANDLER(112)
+    DEFINE_HANDLER(113)
+    DEFINE_HANDLER(114)
+    DEFINE_HANDLER(115)
+    DEFINE_HANDLER(116)
+    DEFINE_HANDLER(117)
+    DEFINE_HANDLER(118)
+    DEFINE_HANDLER(119)
+    DEFINE_HANDLER(120)
+    DEFINE_HANDLER(121)
+    DEFINE_HANDLER(122)
+    DEFINE_HANDLER(123)
+    DEFINE_HANDLER(124)
+    DEFINE_HANDLER(125)
+    DEFINE_HANDLER(126)
+    DEFINE_HANDLER(127)
+    DEFINE_HANDLER(128)
+    DEFINE_HANDLER(129)
+    DEFINE_HANDLER(130)
+    DEFINE_HANDLER(131)
+    DEFINE_HANDLER(132)
+    DEFINE_HANDLER(133)
+    DEFINE_HANDLER(134)
+    DEFINE_HANDLER(135)
+    DEFINE_HANDLER(136)
+    DEFINE_HANDLER(137)
+    DEFINE_HANDLER(138)
+    DEFINE_HANDLER(139)
+    DEFINE_HANDLER(140)
+    DEFINE_HANDLER(141)
+    DEFINE_HANDLER(142)
+    DEFINE_HANDLER(143)
+    DEFINE_HANDLER(144)
+    DEFINE_HANDLER(145)
+    DEFINE_HANDLER(146)
+    DEFINE_HANDLER(147)
+    DEFINE_HANDLER(148)
+    DEFINE_HANDLER(149)
+    DEFINE_HANDLER(150)
+    DEFINE_HANDLER(151)
+    DEFINE_HANDLER(152)
+    DEFINE_HANDLER(153)
+    DEFINE_HANDLER(154)
+    DEFINE_HANDLER(155)
+    DEFINE_HANDLER(156)
+    DEFINE_HANDLER(157)
+    DEFINE_HANDLER(158)
+    DEFINE_HANDLER(159)
+    DEFINE_HANDLER(160)
+    DEFINE_HANDLER(161)
+    DEFINE_HANDLER(162)
+    DEFINE_HANDLER(163)
+    DEFINE_HANDLER(164)
+    DEFINE_HANDLER(165)
+    DEFINE_HANDLER(166)
+    DEFINE_HANDLER(167)
+    DEFINE_HANDLER(168)
+    DEFINE_HANDLER(169)
+    DEFINE_HANDLER(170)
+    DEFINE_HANDLER(171)
+    DEFINE_HANDLER(172)
+    DEFINE_HANDLER(173)
+    DEFINE_HANDLER(174)
+    DEFINE_HANDLER(175)
+    DEFINE_HANDLER(176)
+    DEFINE_HANDLER(177)
+    DEFINE_HANDLER(178)
+    DEFINE_HANDLER(179)
+    DEFINE_HANDLER(180)
+    DEFINE_HANDLER(181)
+    DEFINE_HANDLER(182)
+    DEFINE_HANDLER(183)
+    DEFINE_HANDLER(184)
+    DEFINE_HANDLER(185)
+    DEFINE_HANDLER(186)
+    DEFINE_HANDLER(187)
+    DEFINE_HANDLER(188)
+    DEFINE_HANDLER(189)
+    DEFINE_HANDLER(190)
+    DEFINE_HANDLER(191)
+    DEFINE_HANDLER(192)
+    DEFINE_HANDLER(193)
+    DEFINE_HANDLER(194)
+    DEFINE_HANDLER(195)
+    DEFINE_HANDLER(196)
+    DEFINE_HANDLER(197)
+    DEFINE_HANDLER(198)
+    DEFINE_HANDLER(199)
+    DEFINE_HANDLER(200)
+    DEFINE_HANDLER(201)
+    DEFINE_HANDLER(202)
+    DEFINE_HANDLER(203)
+    DEFINE_HANDLER(204)
+    DEFINE_HANDLER(205)
+    DEFINE_HANDLER(206)
+    DEFINE_HANDLER(207)
+    DEFINE_HANDLER(208)
+    DEFINE_HANDLER(209)
+    DEFINE_HANDLER(210)
+    DEFINE_HANDLER(211)
+    DEFINE_HANDLER(212)
+    DEFINE_HANDLER(213)
+    DEFINE_HANDLER(214)
+    DEFINE_HANDLER(215)
+    DEFINE_HANDLER(216)
+    DEFINE_HANDLER(217)
+    DEFINE_HANDLER(218)
+    DEFINE_HANDLER(219)
+    DEFINE_HANDLER(220)
+    DEFINE_HANDLER(221)
+    DEFINE_HANDLER(222)
+    DEFINE_HANDLER(223)
+    DEFINE_HANDLER(224)
+    DEFINE_HANDLER(225)
+    DEFINE_HANDLER(226)
+    DEFINE_HANDLER(227)
+    DEFINE_HANDLER(228)
+    DEFINE_HANDLER(229)
+    DEFINE_HANDLER(230)
+    DEFINE_HANDLER(231)
+    DEFINE_HANDLER(232)
+    DEFINE_HANDLER(233)
+    DEFINE_HANDLER(234)
+    DEFINE_HANDLER(235)
+    DEFINE_HANDLER(236)
+    DEFINE_HANDLER(237)
+    DEFINE_HANDLER(238)
+    DEFINE_HANDLER(239)
+    DEFINE_HANDLER(240)
+    DEFINE_HANDLER(241)
+    DEFINE_HANDLER(242)
+    DEFINE_HANDLER(243)
+    DEFINE_HANDLER(244)
+    DEFINE_HANDLER(245)
+    DEFINE_HANDLER(246)
+    DEFINE_HANDLER(247)
+    DEFINE_HANDLER(248)
+    DEFINE_HANDLER(249)
+    DEFINE_HANDLER(250)
+    DEFINE_HANDLER(251)
+    DEFINE_HANDLER(252)
+    DEFINE_HANDLER(253)
+    DEFINE_HANDLER(254)
+    DEFINE_HANDLER(255)
+}

@@ -16,6 +16,7 @@
 #include "hal_disk.hpp"
 #include "fat32.hpp"
 #include "pic.hpp"
+#include "cursor.hpp"
 
 
 extern "C" void main(HailOS::Kernel::BootInfo* info)
@@ -52,6 +53,13 @@ extern "C" void main(HailOS::Kernel::BootInfo* info)
     if(!Driver::PS2::Mouse::initMouse())
     {
         PANIC(Status::STATUS_NOT_INITIALIZED, 4, 0, 0, 0);
+    }
+    else
+    {
+        if(!UI::Cursor::initCursor())
+        {
+            PANIC(Status::STATUS_NOT_INITIALIZED, 5, 0, 0, 0);
+        }
     }
 
     Kernel::Utility::enableInterrupts();

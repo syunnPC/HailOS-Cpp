@@ -5,6 +5,7 @@
 #include "pic.hpp"
 #include "vgatype.hpp"
 #include "vga.hpp"
+#include "cursor.hpp"
 
 namespace HailOS::Driver::PS2::Mouse
 {
@@ -73,6 +74,8 @@ namespace HailOS::Driver::PS2::Mouse
             gMouseState.LeftButton = ((b & 0x01) != 0);
             gMouseState.RightButton = ((b & 0x02) != 0);
             gMouseState.MiddleButton = ((b & 0x04) != 0);
+
+            UI::Cursor::updateCursor(COORD(gMouseState.X, gMouseState.Y));
 
             sMouseCycle = 0;
         }

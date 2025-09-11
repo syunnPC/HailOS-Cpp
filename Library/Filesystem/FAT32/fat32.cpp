@@ -121,7 +121,7 @@ namespace HailOS::Driver::Filesystem::FAT32
         return true;
     }
 
-    __attribute__((optimize("O0")) )Status readFile(const char* fileName, u8* outBuffer, size_t maxSize, size_t& outSize)
+    __attribute__((optimize("O0")) )Status readFile(const char* fileName, u8* outBuffer, size_t maxSize, size_t* outSize)
     {
         if(maxSize == 0 || outBuffer == nullptr || fileName == nullptr)
         {
@@ -172,7 +172,10 @@ namespace HailOS::Driver::Filesystem::FAT32
                 {
                     u32 file_cluster = static_cast<u32>(entry[26]) | (static_cast<u32>(entry[27]) << 8) | (static_cast<u32>(entry[20]) << 16) | (static_cast<u32>(entry[21]) << 24);
                     u32 filesize = *reinterpret_cast<u32*>(&entry[28]);
-                    outSize = filesize;
+                    if(outSize != nullptr)
+                    {
+                        *outSize = filesize;
+                    }
                     u32 bytes_read = 0;
                     while(file_cluster < 0x0FFFFFF8 && bytes_read < maxSize)
                     {

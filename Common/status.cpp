@@ -20,6 +20,8 @@ namespace HailOS
                 return "STATUS_INVALID_PARAMETER";
             case Status::STATUS_FILE_NOT_FOUND:
                 return "STATUS_FILE_NOT_FOUND";
+            case Status::STATUS_NOT_IMPLEMENTED:
+                return "STATUS_NOT_IMPLEMENTED";
             case Status::STATUS_DISK_IO_ERROR:
                 return "STATUS_DISK_IO_ERROR";
             case Status::STATUS_DEVICE_NOT_FOUND:

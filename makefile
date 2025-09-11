@@ -19,6 +19,9 @@ KERNEL_DIR = Kernel
 KERNEL_BOOT_DIR = $(KERNEL_DIR)/Boot
 COMMON_DIR = Common
 LIBRARY_DIR = Library
+API_FILEIO_DIR = API/FileIO
+UI_BITMAP_DIR = UserInterface/BitmapImage
+UI_CURSOR_DIR = UserInterface/Cursor
 
 LIB_ACPI_DIR = $(LIBRARY_DIR)/ACPI
 LIB_CONSOLE_DIR = $(LIBRARY_DIR)/Console
@@ -48,6 +51,7 @@ ASFLAGS = -g
 # Specific flags for interrupt.cpp
 CXXFLAGS_INTERRUPT = $(CXXFLAGS_COMMON) -mgeneral-regs-only
 
+# --- Includes ---
 INCLUDES = \
     -I$(COMMON_DIR) \
     -I$(KERNEL_DIR) \
@@ -68,7 +72,11 @@ INCLUDES = \
     -I$(LIB_MEMMGR_DIR) \
     -I$(LIB_STDLIB_DIR) \
     -I$(LIB_TIMER_DIR) \
-    -I$(LIB_VGA_DIR)
+    -I$(LIB_VGA_DIR) \
+    -I$(API_FILEIO_DIR) \
+    -I$(UI_BITMAP_DIR) \
+    -I$(UI_CURSOR_DIR) \
+    -I$(LIB_ACPI_DIR)
 
 # --- Linker ---
 LDSCRIPT = linker.ld
@@ -77,6 +85,8 @@ LDFLAGS = -T $(LDSCRIPT) -nostdlib -n
 # --- Source Files ---
 ASM_SOURCES = \
     $(KERNEL_BOOT_DIR)/boot.S
+
+CPP_SOURCE_INTERRUPT = $(KERNEL_BOOT_DIR)/interrupt.cpp
 
 CPP_SOURCES = \
     $(COMMON_DIR)/common.cpp \
@@ -100,9 +110,11 @@ CPP_SOURCES = \
     $(LIB_MEMMGR_DIR)/memutil.cpp \
     $(LIB_STDLIB_DIR)/cstring.cpp \
     $(LIB_TIMER_DIR)/timer.cpp \
-    $(LIB_VGA_DIR)/vga.cpp
-
-CPP_SOURCE_INTERRUPT = $(KERNEL_BOOT_DIR)/interrupt.cpp
+    $(LIB_VGA_DIR)/vga.cpp \
+    $(LIB_ACPI_DIR)/acpi.cpp \
+    $(API_FILEIO_DIR)/fileio.cpp \
+    $(UI_BITMAP_DIR)/bitmap.cpp \
+    $(UI_CURSOR_DIR)/cursor.cpp
 
 # C sources (compiled with gcc)
 C_SOURCES = \

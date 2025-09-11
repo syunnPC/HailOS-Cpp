@@ -7,6 +7,7 @@
 #include "cstring.hpp"
 #include "memutil.hpp"
 #include "console.hpp"
+#include "cursor.hpp"
 
 namespace HailOS::Console
 {
@@ -101,6 +102,8 @@ namespace HailOS::Console
                 setEmptyPixelOnBuffer(COORD(sCursorPos.X + x, sCursorPos.Y + y));
             }
         }
+
+        UI::Cursor::updateBufferUnderCursor();
     }
 
     static void printCharToBuffer(char ch, RGB color)
@@ -148,6 +151,7 @@ namespace HailOS::Console
                 }
             }
             sCursorPos.X += FONT_WIDTH;
+            UI::Cursor::updateBufferUnderCursor();
         }
         else
         {
@@ -189,6 +193,7 @@ namespace HailOS::Console
 
         printCharToBuffer(ch, color);
         drawBufferContentsToFrameBuffer();
+        UI::Cursor::updateBufferUnderCursor();
     }
 
     void printString(const char* str, RGB color)
@@ -203,6 +208,7 @@ namespace HailOS::Console
             printCharToBuffer(str[i], color);
         }
         drawBufferContentsToFrameBuffer();
+        UI::Cursor::updateBufferUnderCursor();
     }
 
     void scroll(u32 line)
@@ -223,6 +229,7 @@ namespace HailOS::Console
         shiftBufferContents(FONT_HEIGHT*line, Direction::VERTICAL_UP);
         fillScreenWithBackgroundColor();
         drawBufferContentsToFrameBuffer();
+        UI::Cursor::updateBufferUnderCursor();
     }
 
     Point setCursorPos(Point location)
@@ -252,6 +259,7 @@ namespace HailOS::Console
         deleteCharOnBuffer();
         fillScreenWithBackgroundColor();
         drawBufferContentsToFrameBuffer();
+        UI::Cursor::updateBufferUnderCursor();
     }
 
     char readKeywithEcho(RGB color)

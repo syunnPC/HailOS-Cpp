@@ -60,4 +60,6 @@ namespace HailOS::Graphic
         u32 VerticalResolution;
         PixelFormat DisplayPixelFormat;
     } PACKED;
+
+    static_assert(sizeof(FrameBufferColor) == 4);
 }

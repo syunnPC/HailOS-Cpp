@@ -81,7 +81,7 @@ namespace HailOS::Driver::Filesystem::FAT32
         u16 BootSectorSignature;
     } PACKED;
 
-    Status readFile(const char* fileName, u8* outBuffer, size_t maxSize, size_t& outSize);
+    Status readFile(const char* fileName, u8* outBuffer, size_t maxSize, size_t* outSize);
     Status getFileSize(const char* fileName, size_t& outSize);
     bool initFAT32();
 }

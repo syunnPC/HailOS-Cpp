@@ -11,19 +11,19 @@ namespace HailOS::Graphic
     static GraphicInfo* sGraphicInfo = nullptr;
     static u8* sBuffer;
     static RGB sBackgroundColor;
-    static bool sGraphicAvailability = false;
+    static bool sInitialized = false;
 
     static constexpr auto NO_TRANSFER_BYTE = 0x00;
     static constexpr FrameBufferColor NO_TRANSFER_COLOR = {NO_TRANSFER_BYTE, NO_TRANSFER_BYTE, NO_TRANSFER_BYTE, NO_TRANSFER_BYTE};
 
     bool isGraphicAvailable(void)
     {
-        return sGraphicAvailability;
+        return sInitialized;
     }
 
     FrameBufferColor convertColor(RGB color)
     {
-        if (!sGraphicAvailability)
+        if (!sInitialized)
         {
             PANIC(Status::STATUS_NOT_INITIALIZED, 0, 0, 0, 0);
         }
@@ -52,7 +52,7 @@ namespace HailOS::Graphic
 
     RGB convertColor(FrameBufferColor color)
     {
-        if (!sGraphicAvailability)
+        if (!sInitialized)
         {
             PANIC(Status::STATUS_NOT_INITIALIZED, 0, 0, 0, 0);
         }
@@ -71,7 +71,7 @@ namespace HailOS::Graphic
 
     bool drawPixel(Point location, RGB color)
     {
-        if (!sGraphicAvailability)
+        if (!sInitialized)
         {
             return false;
         }
@@ -90,7 +90,7 @@ namespace HailOS::Graphic
 
     void fillScreenWithBackgroundColor(void)
     {
-        if (!sGraphicAvailability)
+        if (!sInitialized)
         {
             return;
         }
@@ -131,13 +131,13 @@ namespace HailOS::Graphic
 
         sBackgroundColor = initialColor;
         fillScreenWithBackgroundColor();
-        sGraphicAvailability = true;
+        sInitialized = true;
         return true;
     }
 
     bool drawPixelToBuffer(Point location, RGB color)
     {
-        if(!sGraphicAvailability)
+        if(!sInitialized)
         {
             return false;
         }
@@ -156,7 +156,7 @@ namespace HailOS::Graphic
 
     bool drawBufferContentsToFrameBuffer(void)
     {
-        if(!sGraphicAvailability)
+        if(!sInitialized)
         {
             return false;
         }
@@ -181,7 +181,7 @@ namespace HailOS::Graphic
 
     void clearBuffer(void)
     {
-        if(!sGraphicAvailability)
+        if(!sInitialized)
         {
             return;
         }
@@ -191,7 +191,7 @@ namespace HailOS::Graphic
 
     void shiftBufferContents(u32 shiftPx, Direction direction)
     {
-        if(!sGraphicAvailability || shiftPx == 0)
+        if(!sInitialized || shiftPx == 0)
         {
             return;
         }
@@ -285,7 +285,7 @@ namespace HailOS::Graphic
 
     RGB changeBackgroundColor(RGB color)
     {
-        if(!sGraphicAvailability)
+        if(!sInitialized)
         {
             return color;
         }
@@ -298,7 +298,7 @@ namespace HailOS::Graphic
 
     Rectangle getScreenResolution(void)
     {
-        if(!sGraphicAvailability)
+        if(!sInitialized)
         {
             return RECT(0, 0);
         }
@@ -308,7 +308,7 @@ namespace HailOS::Graphic
 
     void setEmptyPixelOnBuffer(Point location)
     {
-        if(!sGraphicAvailability)
+        if(!sInitialized)
         {
             return;
         }
@@ -325,7 +325,7 @@ namespace HailOS::Graphic
 
     void shiftBufferContentsAndDraw(u32 shiftPx, Direction direction)
     {
-        if(!sGraphicAvailability)
+        if(!sInitialized)
         {
             return;
         }
@@ -337,7 +337,7 @@ namespace HailOS::Graphic
 
     u32 getPixelsPerScanLine(void)
     {
-        if(!sGraphicAvailability)
+        if(!sInitialized)
         {
             return 0;
         }
@@ -347,11 +347,21 @@ namespace HailOS::Graphic
 
     addr_t getFrameBufferAddress(void)
     {
-        if(!sGraphicAvailability)
+        if(!sInitialized)
         {
             return 0;
         }
 
         return sGraphicInfo->FrameBufferBase;
+    }
+
+    addr_t getBufferAddress(void)
+    {
+        if(!sInitialized)
+        {
+            return 0;
+        }
+
+        return reinterpret_cast<addr_t>(sBuffer);
     }
 }

@@ -39,17 +39,17 @@ namespace HailOS::Kernel::Boot
     __attribute__((interrupt)) void handler17(HailOS::Kernel::Boot::InterruptFrame *frame, u64 errorcode); //#AC
     __attribute__((interrupt)) void handler18(HailOS::Kernel::Boot::InterruptFrame *frame); //#MC
     __attribute__((interrupt)) void handler19(HailOS::Kernel::Boot::InterruptFrame *frame); //#XF
-    __attribute__((interrupt)) void handler20(HailOS::Kernel::Boot::InterruptFrame *frame); //20~29 予約済み
-    __attribute__((interrupt)) void handler21(HailOS::Kernel::Boot::InterruptFrame *frame);
+    __attribute__((interrupt)) void handler20(HailOS::Kernel::Boot::InterruptFrame *frame); //#VE
+    __attribute__((interrupt)) void handler21(HailOS::Kernel::Boot::InterruptFrame *frame); //#CP
     __attribute__((interrupt)) void handler22(HailOS::Kernel::Boot::InterruptFrame *frame);
     __attribute__((interrupt)) void handler23(HailOS::Kernel::Boot::InterruptFrame *frame);
     __attribute__((interrupt)) void handler24(HailOS::Kernel::Boot::InterruptFrame *frame);
     __attribute__((interrupt)) void handler25(HailOS::Kernel::Boot::InterruptFrame *frame);
     __attribute__((interrupt)) void handler26(HailOS::Kernel::Boot::InterruptFrame *frame);
     __attribute__((interrupt)) void handler27(HailOS::Kernel::Boot::InterruptFrame *frame);
-    __attribute__((interrupt)) void handler28(HailOS::Kernel::Boot::InterruptFrame *frame);
-    __attribute__((interrupt)) void handler29(HailOS::Kernel::Boot::InterruptFrame *frame);
-    __attribute__((interrupt)) void handler30(HailOS::Kernel::Boot::InterruptFrame *frame, u64); //#SX
+    __attribute__((interrupt)) void handler28(HailOS::Kernel::Boot::InterruptFrame *frame); //#HV
+    __attribute__((interrupt)) void handler29(HailOS::Kernel::Boot::InterruptFrame *frame, u64 errorcode); //#VC
+    __attribute__((interrupt)) void handler30(HailOS::Kernel::Boot::InterruptFrame *frame, u64 errorcode); //#SX
     __attribute__((interrupt)) void handler31(HailOS::Kernel::Boot::InterruptFrame *frame);
     __attribute__((interrupt)) void handler32(HailOS::Kernel::Boot::InterruptFrame *frame);
     __attribute__((interrupt)) void handler33(HailOS::Kernel::Boot::InterruptFrame *frame);

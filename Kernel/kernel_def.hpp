@@ -4,6 +4,7 @@
 #include "vgatype.hpp"
 #include "memmgr.hpp"
 #include "timedef.hpp"
+#include "acpi.hpp"
 
 namespace HailOS::Kernel
 {
@@ -13,6 +14,6 @@ namespace HailOS::Kernel
         MemoryManager::MemoryInfo* MemInfo;
         HailOS::Utility::Timer::HardwareClockInfo* ClockInfo;
         Graphic::GraphicInfo* FrameBufferInfo;
-        void* RSDPPtr;
+        PowerManager::ACPI::RSDPtr* RSDP;
     } PACKED;
 }

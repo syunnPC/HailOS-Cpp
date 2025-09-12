@@ -68,8 +68,18 @@ namespace HailOS
                 return "STATUS_MACHINE_CHECK_EXCEPTION";
             case Status::STATUS_SIMD_FP_EXCEPTION:
                 return "STATUS_SIMD_FP_EXCEPTION";
+            case Status::STATUS_VIRTUALIZATION_EXCEPTION:
+                return "STATUS_VIRTUALIZATION_EXCEPTION";
+            case Status::STATUS_CONTROL_PROTECTION_EXCEPTION:
+                return "STATUS_CONTROL_PROTECTION_EXCEPTION";
+            case Status::STATUS_HYPERVISOR_INJECTION_EXCEPTION:
+                return "STATUS_HYPERVISOR_INJECTION_EXCEPTION";
+            case Status::STATUS_VMM_COMMUNICATION_EXCEPTION:
+                return "STATUS_VMM_COMMUNICATION_EXCEPTION";
             case Status::STATUS_SECURITY_EXCEPTION:
                 return "STATUS_SECURITY_EXCEPTION";
+            case Status::STATUS_ACPI_ERROR:
+                return "STATUS_ACPI_ERROR";
         }
     }
 }

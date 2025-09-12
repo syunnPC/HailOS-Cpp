@@ -50,9 +50,13 @@ extern "C" void main(HailOS::Kernel::BootInfo* info)
     {
         PANIC(Status::STATUS_NOT_INITIALIZED, 3, 0, 0, 0);
     }
+    if(!PowerManager::ACPI::initACPI(info->RSDP))
+    {
+        Console::puts("Failed to initialize ACPI.\n");
+    }
     if(!Driver::PS2::Mouse::initMouse())
     {
-        PANIC(Status::STATUS_NOT_INITIALIZED, 4, 0, 0, 0);
+        Console::puts("Failed to initialize PS/2 Mouse.\n");
     }
     else
     {
@@ -63,4 +67,6 @@ extern "C" void main(HailOS::Kernel::BootInfo* info)
     }
 
     Kernel::Utility::enableInterrupts();
+
+    while(true);
 }

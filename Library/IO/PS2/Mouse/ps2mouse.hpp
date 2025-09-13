@@ -1,6 +1,7 @@
 #pragma once
 
 #include "basetype.hpp"
+#include "vgatype.hpp"
 
 namespace HailOS::Driver::PS2::Mouse
 {
@@ -17,4 +18,6 @@ namespace HailOS::Driver::PS2::Mouse
     
     extern "C" void mouseHandler(void);
     bool initMouse(void);
+    extern bool gMouseMoved;
+    extern MouseState gMouseState;
 }

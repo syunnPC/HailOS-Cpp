@@ -12,7 +12,7 @@ namespace HailOS::Kernel::Boot
     constexpr auto IDT_ENTRIES = 256;
 
     //必要なGDTエントリ:null+r0code+r0data+r3code+r3data+tss(2) = 7
-    alignas(16) static u8* sGDT[7 * sizeof(GDTEntry)];
+    alignas(16) static u8 sGDT[7 * sizeof(GDTEntry)];
     static GDTR sGDTPtr;
     static TSS sTSS;
     alignas(16) static IDTEntry sIDT[IDT_ENTRIES];
@@ -374,7 +374,7 @@ namespace HailOS::Kernel::Boot
         setIDTEntry(255, reinterpret_cast<void *>(handler255), IDT_TYPE_INTERRUPT_GATE);
 
         setIDTEntry(IRQ_IDT(Driver::PS2::Keyboard::IRQ_KEYBOARD), reinterpret_cast<void*>(isrKeyboard), IDT_TYPE_INTERRUPT_GATE);
-        setIDTEntry(IRQ_IDT(Driver::PS2::Mouse::IRQ_MOUSE), reinterpret_cast<void*>(isrMouse), IDT_TYPE_TRAP_GATE);
+        setIDTEntry(IRQ_IDT(Driver::PS2::Mouse::IRQ_MOUSE), reinterpret_cast<void*>(isrMouse), IDT_TYPE_INTERRUPT_GATE);
         setIDTEntry(IRQ_IDT(7), reinterpret_cast<void*>(isrIRQ7), IDT_TYPE_INTERRUPT_GATE);
 
         sIDTPtr.Base = reinterpret_cast<u64>(&sIDT);

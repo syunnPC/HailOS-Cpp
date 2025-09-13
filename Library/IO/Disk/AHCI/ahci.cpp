@@ -240,7 +240,7 @@ namespace HailOS::Driver::AHCI
         MemoryManager::fill(cmdtbl.Prdt, sizeof(cmdtbl.Prdt), 0);
     }
 
-    bool identifyDevice(volatile HBAMemory& abar, int portIndex)
+    __attribute__((optimize("O0"))) bool identifyDevice(volatile HBAMemory& abar, int portIndex)
     {
         volatile HBAPort& port = *HBA_PORT(&abar, portIndex);
 
@@ -321,7 +321,7 @@ namespace HailOS::Driver::AHCI
         return identifyDevice(abar, port);
     }
 
-    bool readSector(volatile HBAMemory& abar, int portIndex, u64 lba, u8* buffer)
+    __attribute__((optimize("O0")))bool readSector(volatile HBAMemory& abar, int portIndex, u64 lba, u8* buffer)
     {
         if(buffer == nullptr)
         {

@@ -1,5 +1,7 @@
 #include "memdef.hpp"
 #include "basetype.hpp"
+#include "console.hpp"
+#include "cstring.hpp"
 
 namespace HailOS::MemoryManager
 {

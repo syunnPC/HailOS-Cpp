@@ -57,6 +57,10 @@ namespace HailOS::Graphic::BitmapImage
         {
             drawBufferContentsToFrameBuffer();
         }
+        else
+        {
+            setLastStatus(status);
+        }
         return status;
     }
 

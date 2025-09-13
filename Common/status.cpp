@@ -30,6 +30,12 @@ namespace HailOS
                 return "STATUS_MEMORY_ALLOCATION_FAILED";
             case Status::STATUS_FAT32_FILESYSTEM:
                 return "STATUS_FAT32_FILESYSTEM";
+            case Status::STATUS_FAT32_PARTITION_NOT_FOUND:
+                return "STATUS_FAT32_PARTITION_NOT_FOUND";
+            case Status::STATUS_FAT32_BASELBA_READ_FAILED:
+                return "STATUS_FAT32_BASELBA_READ_FAILED";
+            case Status::STATUS_FAT32_REQUIREMENT_NOT_SATISFIED:
+                return "STATUS_FAT32_REQUIREMENT_NOT_SATISFIED";
             case Status::STATUS_DIVIDE_ERROR:
                 return "STATUS_DIVIDE_ERROR";
             case Status::STATUS_DEBUG_EXCEPTION:
@@ -81,5 +87,28 @@ namespace HailOS
             case Status::STATUS_ACPI_ERROR:
                 return "STATUS_ACPI_ERROR";
         }
+    }
+
+    static Status sLastStatus = Status::STATUS_SUCCESS;
+
+    const char* getStatusDescriptionMessage(Status status)
+    {
+        switch(status)
+        {
+            default:
+                return statusToString(status);
+        }
+    }
+
+    Status getLastStatus(void)
+    {
+        return sLastStatus;
+    }
+
+    Status setLastStatus(Status status)
+    {
+        Status last = sLastStatus;
+        sLastStatus = status;
+        return last;
     }
 }

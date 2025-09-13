@@ -188,7 +188,7 @@ namespace HailOS::PowerManager::ACPI
         }
     }
 
-    void shutdown(void)
+    __attribute__((optimize("O0"))) void shutdown(void)
     {
         if(sInitialized == false || sRSDP == nullptr)
         {

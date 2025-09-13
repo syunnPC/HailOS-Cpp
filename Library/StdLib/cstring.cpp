@@ -207,4 +207,23 @@ namespace HailOS::StdLib::C
         result[i] = '\0';
         return result;
     }
+
+    const char* utohexstr(u64 n)
+    {
+        static char buf[19];
+        static const char* hex = "0123456789ABCDEF";
+
+        buf[0] = '0';
+        buf[1] = 'x';
+
+        for(int i=0; i<16; i++)
+        {
+            int shift = (15 - i) * 4;
+            u8 nib = (n >> shift) & 0xF;
+            buf[2+i] = hex[nib];
+        }
+
+        buf[18] = '\0';
+        return buf;
+    }
 }

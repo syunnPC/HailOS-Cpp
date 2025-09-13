@@ -103,7 +103,7 @@ namespace HailOS::Console
             }
         }
 
-        UI::Cursor::updateBufferUnderCursor();
+        //UI::Cursor::updateCursor(UI::Cursor::getCursorPosition());
     }
 
     static void printCharToBuffer(char ch, RGB color)
@@ -151,7 +151,7 @@ namespace HailOS::Console
                 }
             }
             sCursorPos.X += FONT_WIDTH;
-            UI::Cursor::updateBufferUnderCursor();
+            //UI::Cursor::updateCursor(UI::Cursor::getCursorPosition());
         }
         else
         {
@@ -193,7 +193,7 @@ namespace HailOS::Console
 
         printCharToBuffer(ch, color);
         drawBufferContentsToFrameBuffer();
-        UI::Cursor::updateBufferUnderCursor();
+        //UI::Cursor::updateCursor(UI::Cursor::getCursorPosition());
     }
 
     void printString(const char* str, RGB color)
@@ -208,7 +208,7 @@ namespace HailOS::Console
             printCharToBuffer(str[i], color);
         }
         drawBufferContentsToFrameBuffer();
-        UI::Cursor::updateBufferUnderCursor();
+        //UI::Cursor::updateCursor(UI::Cursor::getCursorPosition());
     }
 
     void scroll(u32 line)
@@ -229,7 +229,7 @@ namespace HailOS::Console
         shiftBufferContents(FONT_HEIGHT*line, Direction::VERTICAL_UP);
         fillScreenWithBackgroundColor();
         drawBufferContentsToFrameBuffer();
-        UI::Cursor::updateBufferUnderCursor();
+        //UI::Cursor::updateCursor(UI::Cursor::getCursorPosition());
     }
 
     Point setCursorPos(Point location)
@@ -259,7 +259,7 @@ namespace HailOS::Console
         deleteCharOnBuffer();
         fillScreenWithBackgroundColor();
         drawBufferContentsToFrameBuffer();
-        UI::Cursor::updateBufferUnderCursor();
+        //UI::Cursor::updateCursor(UI::Cursor::getCursorPosition());
     }
 
     char readKeywithEcho(RGB color)

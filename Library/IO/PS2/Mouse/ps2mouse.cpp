@@ -11,6 +11,8 @@ namespace HailOS::Driver::PS2::Mouse
 {
     static constexpr auto PS2_WAIT_LOOP = 1000000;
 
+    bool gMouseMoved = false;
+
     MouseState gMouseState;
     static u8 sMouseCycle;
     static u8 sMouseBytes[4];
@@ -27,7 +29,14 @@ namespace HailOS::Driver::PS2::Mouse
             return;
         }
 
-        u8 status = IO::inb(PS2_DATA_PORT);
+        u8 status = IO::inb(PS2_STATUS_PORT);
+
+        if(!(status & 0x20))
+        {
+            IO::PIC::sendEOI(IRQ_MOUSE);
+            return;
+        }
+
         u8 data = IO::inb(PS2_DATA_PORT);
 
         if(sMouseCycle == 0 && !(data & 0x08))
@@ -42,8 +51,8 @@ namespace HailOS::Driver::PS2::Mouse
         {
             u8 b = sMouseBytes[0];
 
-            bool sx = b & 0x10;
-            bool sy = b & 0x20;
+            //bool sx = b & 0x10;
+            //bool sy = b & 0x20;
 
             int dx = static_cast<i8>(sMouseBytes[1]);
             int dy = static_cast<i8>(sMouseBytes[2]);
@@ -75,7 +84,7 @@ namespace HailOS::Driver::PS2::Mouse
             gMouseState.RightButton = ((b & 0x02) != 0);
             gMouseState.MiddleButton = ((b & 0x04) != 0);
 
-            UI::Cursor::updateCursor(COORD(gMouseState.X, gMouseState.Y));
+            gMouseMoved = true;
 
             sMouseCycle = 0;
         }
@@ -106,7 +115,7 @@ namespace HailOS::Driver::PS2::Mouse
             }
         }
 
-        return true;
+        return false;
     }
 
     static bool writeCtrlCmd(u8 cmd)
@@ -238,6 +247,9 @@ namespace HailOS::Driver::PS2::Mouse
 
         gMouseState.X = 0;
         gMouseState.Y = 0;
+
+        sInitialized = true;
+        sScreenResolution = Graphic::getScreenResolution();
 
         return true;
     }

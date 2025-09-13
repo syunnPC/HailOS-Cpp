@@ -17,56 +17,96 @@
 #include "fat32.hpp"
 #include "pic.hpp"
 #include "cursor.hpp"
+#include "timer.hpp"
+#include "bitmap.hpp"
+#include "cstring.hpp"
+#include "memutil.hpp"
+#include "hal_kbd.hpp"
 
-
-extern "C" void main(HailOS::Kernel::BootInfo* info)
+extern "C" void main(HailOS::Kernel::BootInfo *info)
 {
     using namespace HailOS;
 
     Kernel::Boot::initGDTandTSS(HailOS::Kernel::Boot::kernel_stack_top);
+
     IO::PIC::remap(0x20, 0x28);
+
     Kernel::Boot::initIDT();
-    IO::PIC::unmask(2);
+    IO::PIC::unmask(2); //PIC スレーブ
     IO::PIC::unmask(Driver::PS2::Mouse::IRQ_MOUSE);
     IO::PIC::unmask(Driver::PS2::Keyboard::IRQ_KEYBOARD);
 
-    if(!MemoryManager::initMemoryManager(info->MemInfo))
+    if (!MemoryManager::initMemoryManager(info->MemInfo))
     {
         Kernel::forceReboot();
     }
-    if(!Graphic::initGraphics(info->FrameBufferInfo, Console::DEFAULT_CONSOLE_BACKGROUND_COLOR))
+    if (!Graphic::initGraphics(info->FrameBufferInfo, Console::DEFAULT_CONSOLE_BACKGROUND_COLOR))
     {
         Kernel::forceReboot();
     }
-    if(!Console::initConsole())
+    if (!Console::initConsole())
     {
-        PANIC(Status::STATUS_NOT_INITIALIZED, 1, 0, 0, 0);
+        PANIC(Status::STATUS_NOT_INITIALIZED, 1, static_cast<u64>(getLastStatus()), 0, 0);
     }
-    if(!Utility::Timer::initTime(info->ClockInfo))
+    if (!Utility::Timer::initTime(info->ClockInfo))
     {
-        PANIC(Status::STATUS_NOT_INITIALIZED, 2, 0, 0, 0);
+        PANIC(Status::STATUS_NOT_INITIALIZED, 2, static_cast<u64>(getLastStatus()), 0, 0);
     }
-    if(!HAL::Disk::initDisk())
+    if (!HAL::Disk::initDisk())
     {
-        PANIC(Status::STATUS_NOT_INITIALIZED, 3, 0, 0, 0);
+        PANIC(Status::STATUS_NOT_INITIALIZED, 3, static_cast<u64>(getLastStatus()), 0, 0);
     }
-    if(!PowerManager::ACPI::initACPI(info->RSDP))
+    if (!Driver::Filesystem::FAT32::initFAT32())
+    {
+        PANIC(Status::STATUS_NOT_INITIALIZED, 4, static_cast<u64>(getLastStatus()), 0, 0);
+    }
+    if (!PowerManager::ACPI::initACPI(info->RSDP))
     {
         Console::puts("Failed to initialize ACPI.\n");
     }
-    if(!Driver::PS2::Mouse::initMouse())
+
+    if (!Driver::PS2::Mouse::initMouse())
     {
         Console::puts("Failed to initialize PS/2 Mouse.\n");
     }
     else
     {
-        if(!UI::Cursor::initCursor())
+        if (!UI::Cursor::initCursor())
         {
-            PANIC(Status::STATUS_NOT_INITIALIZED, 5, 0, 0, 0);
+            Console::puts("Failed to initialize cursor.\n");
         }
     }
 
     Kernel::Utility::enableInterrupts();
 
-    while(true);
+    Graphic::Rectangle rect;
+
+    Console::puts("HailOS-C++ version 0.3\nSee https://github.com/syunnPC/HailOS-Cpp\nFramebuffer address: ");
+    Console::puts(StdLib::C::utohexstr(Graphic::getBufferAddress()));
+    Console::puts(", resolution ");
+    Console::puts(StdLib::C::utos(Graphic::getScreenResolution().Width));
+    Console::puts(" x ");
+    Console::puts(StdLib::C::utos(Graphic::getScreenResolution().Height));
+    Console::puts(", PPSL: ");
+    Console::puts(StdLib::C::utos(Console::getPixelsPerScanLine()));
+    Console::puts("\n");
+    Console::puts("Memory size = ");
+    Console::puts(StdLib::C::utos(MemoryManager::queryAvailableMemorySize()));
+    Console::puts(" bytes, largest memory block = ");
+    Console::puts(StdLib::C::utos(MemoryManager::queryLargestMemoryRegion()));
+    Console::puts(" bytes\n");
+    Graphic::BitmapImage::drawBitmap("picture1.bmp", Console::getCursorPos(), &rect);
+    Console::setCursorPos({0, Console::getCursorPos().Y + rect.Height});
+    Console::puts("lastStatus : ");
+    Console::puts(statusToString(getLastStatus()));
+    Console::puts("\n");
+
+    while(true)
+    {
+        if(Driver::PS2::Mouse::gMouseMoved)
+        {
+            UI::Cursor::updateCursor(COORD(Driver::PS2::Mouse::gMouseState.X, Driver::PS2::Mouse::gMouseState.Y));
+            Driver::PS2::Mouse::gMouseMoved = false;
+        }
+    }
 }

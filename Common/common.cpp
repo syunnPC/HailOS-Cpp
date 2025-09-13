@@ -36,21 +36,21 @@ namespace HailOS::Kernel
         Console::clearBuffer();
 
         Console::puts("System Error! Status: ");
-        Console::puts(StdLib::C::utos(static_cast<u64>(status)));
+        Console::puts(StdLib::C::utohexstr(static_cast<u64>(status)));
         Console::puts(" (");
         Console::puts(statusToString(status));
         Console::puts(")\n");
         Console::puts("Param 1:");
-        Console::puts(StdLib::C::utos(param1));
+        Console::puts(StdLib::C::utohexstr(param1));
         Console::puts("\n");
         Console::puts("Param 2:");
-        Console::puts(StdLib::C::utos(param2));
+        Console::puts(StdLib::C::utohexstr(param2));
         Console::puts("\n");
         Console::puts("Param 3:");
-        Console::puts(StdLib::C::utos(param3));
+        Console::puts(StdLib::C::utohexstr(param3));
         Console::puts("\n");
         Console::puts("Param 4:");
-        Console::puts(StdLib::C::utos(param4));
+        Console::puts(StdLib::C::utohexstr(param4));
         Console::puts("\n");
         Console::puts("in file ");
         Console::puts(file);

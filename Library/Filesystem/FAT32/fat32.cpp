@@ -150,7 +150,7 @@ namespace HailOS::Driver::Filesystem::FAT32
             {
                 u8* entry = &cluster_buf[i];
 
-                if(entry[i] == 0x00)
+                if(entry[0] == 0x00)
                 {
                     MemoryManager::free(cluster_buf, cluster_buf_size);
                     return Status::STATUS_FAT32_FILESYSTEM;
@@ -256,7 +256,7 @@ namespace HailOS::Driver::Filesystem::FAT32
             {
                 u8 *entry = &cluster_buf[i];
 
-                if (entry[i] == 0x00)
+                if (entry[0] == 0x00)
                 {
                     MemoryManager::free(cluster_buf, cluster_buf_size);
                     return Status::STATUS_FAT32_FILESYSTEM;
@@ -276,8 +276,7 @@ namespace HailOS::Driver::Filesystem::FAT32
 
                 if (compareFileName(entry, fileName))
                 {
-                    u32 file_cluster = static_cast<u32>(entry[26]) | (static_cast<u32>(entry[27]) << 8) | (static_cast<u32>(entry[20]) << 16) | (static_cast<u32>(entry[21]) << 24);
-                    u32 filesize = *reinterpret_cast<u32 *>(&entry[28]);
+                    u32 filesize = *reinterpret_cast<u32*>(&entry[28]);
                     outSize = filesize;
                     MemoryManager::free(cluster_buf, cluster_buf_size);
                     return Status::STATUS_SUCCESS;
@@ -367,17 +366,20 @@ namespace HailOS::Driver::Filesystem::FAT32
     {
         if(!findFAT32Partition(sFAT32BaseLBA))
         {
+            setLastStatus(Status::STATUS_FAT32_PARTITION_NOT_FOUND);
             return false;
         }
 
         if(!HAL::Disk::readSector(sFAT32BaseLBA, reinterpret_cast<u8*>(&sVBR)))
         {
+            setLastStatus(Status::STATUS_FAT32_BASELBA_READ_FAILED);
             return false;
         }
 
-        if(sVBR.SectorsPerCluster != 512 || sVBR.SectorsPerCluster == 0 || (sVBR.SectorsPerCluster & (sVBR.SectorsPerCluster - 1)) != 0 || sVBR.NumFATs == 0 ||
+        if(sVBR.BytesPerSector != 512 || sVBR.SectorsPerCluster == 0 || (sVBR.SectorsPerCluster & (sVBR.SectorsPerCluster - 1)) != 0 || sVBR.NumFATs == 0 ||
         sVBR.ReservedSectorCount == 0 || sVBR.FATSize32 == 0 || sVBR.RootClustor < 2 || sVBR.BootSectorSignature != 0xAA55 || StdLib::C::strncmp(sVBR.FSType, "FAT32", 5) != 0)
         {
+            setLastStatus(Status::STATUS_FAT32_REQUIREMENT_NOT_SATISFIED);
             return false;
         }
 

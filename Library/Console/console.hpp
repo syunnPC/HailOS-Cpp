@@ -2,6 +2,7 @@
 
 #include "basetype.hpp"
 #include "vgatype.hpp"
+#include "vga.hpp"
 
 namespace HailOS::Console
 {

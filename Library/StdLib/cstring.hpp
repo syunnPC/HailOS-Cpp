@@ -10,4 +10,5 @@ namespace HailOS::StdLib::C
     void* memset(void* dest, u8 value, size_t size);
     char* utos(u64 n);
     char* itos(i64 n);
+    const char* utohexstr(u64 n);
 }

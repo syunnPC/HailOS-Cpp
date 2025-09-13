@@ -3,6 +3,8 @@
 #include "memutil.hpp"
 #include "common.hpp"
 #include "status.hpp"
+#include "cursor.hpp"
+#include "kernellib.hpp"
 
 #define CALC_PIXEL_OFFSET(x, y) ((y * HailOS::Graphic::sGraphicInfo->PixelsPerScanLine + x) * HailOS::Graphic::PIXEL_SIZE)
 
@@ -122,8 +124,9 @@ namespace HailOS::Graphic
         }
 
         sGraphicInfo = info;
+        sInitialized = true;
 
-        sBuffer = reinterpret_cast<u8*>(MemoryManager::alloc(sGraphicInfo->FrameBufferSize));
+        sBuffer = reinterpret_cast<u8*>(MemoryManager::allocInitializedMemory(sGraphicInfo->FrameBufferSize, NO_TRANSFER_BYTE));
         if(sBuffer == nullptr)
         {
             return false;
@@ -131,7 +134,6 @@ namespace HailOS::Graphic
 
         sBackgroundColor = initialColor;
         fillScreenWithBackgroundColor();
-        sInitialized = true;
         return true;
     }
 
@@ -161,6 +163,8 @@ namespace HailOS::Graphic
             return false;
         }
 
+        Kernel::Utility::disableInterrupts();
+
         fillScreenWithBackgroundColor();
 
         for(u32 y=0; y<sGraphicInfo->VerticalResolution; y++)
@@ -176,6 +180,10 @@ namespace HailOS::Graphic
             }
         }
 
+        //UI::Cursor::updateCursor(UI::Cursor::getCursorPosition());
+
+        Kernel::Utility::enableInterrupts();
+
         return true;
     }
 
@@ -187,6 +195,7 @@ namespace HailOS::Graphic
         }
 
         MemoryManager::fill(sBuffer, sGraphicInfo->FrameBufferSize, NO_TRANSFER_BYTE);
+        //UI::Cursor::updateCursor(UI::Cursor::getCursorPosition());
     }
 
     void shiftBufferContents(u32 shiftPx, Direction direction)
@@ -274,12 +283,14 @@ namespace HailOS::Graphic
         clearBuffer();
         MemoryManager::memcopy(sBuffer, buf, sGraphicInfo->FrameBufferSize);
         MemoryManager::free(buf, sGraphicInfo->FrameBufferSize);
+        //UI::Cursor::updateCursor(UI::Cursor::getCursorPosition());
     }
 
     RGB setBackgroundColor(RGB color)
     {
         RGB prev = sBackgroundColor;
         sBackgroundColor = color;
+        //UI::Cursor::updateCursor(UI::Cursor::getCursorPosition());
         return prev;
     }
 
@@ -293,6 +304,7 @@ namespace HailOS::Graphic
         RGB prev = setBackgroundColor(color);
         fillScreenWithBackgroundColor();
         drawBufferContentsToFrameBuffer();
+        //UI::Cursor::updateCursor(UI::Cursor::getCursorPosition());
         return prev;
     }
 
@@ -321,6 +333,7 @@ namespace HailOS::Graphic
         addr_t offset = CALC_PIXEL_OFFSET(location.X, location.Y);
         FrameBufferColor* addr = reinterpret_cast<FrameBufferColor*>(reinterpret_cast<addr_t>(sBuffer) + offset);
         *addr = NO_TRANSFER_COLOR;
+        //UI::Cursor::updateCursor(UI::Cursor::getCursorPosition());
     }
 
     void shiftBufferContentsAndDraw(u32 shiftPx, Direction direction)
@@ -333,6 +346,7 @@ namespace HailOS::Graphic
         shiftBufferContents(shiftPx, direction);
         fillScreenWithBackgroundColor();
         drawBufferContentsToFrameBuffer();
+        //UI::Cursor::updateCursor(UI::Cursor::getCursorPosition());
     }
 
     u32 getPixelsPerScanLine(void)

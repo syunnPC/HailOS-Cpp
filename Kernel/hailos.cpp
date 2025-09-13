@@ -101,6 +101,8 @@ extern "C" void main(HailOS::Kernel::BootInfo *info)
     Console::puts(statusToString(getLastStatus()));
     Console::puts("\n");
 
+    PowerManager::ACPI::shutdown();
+
     while(true)
     {
         if(Driver::PS2::Mouse::gMouseMoved)

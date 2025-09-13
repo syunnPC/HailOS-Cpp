@@ -203,9 +203,18 @@ namespace HailOS::PowerManager::ACPI
 
         FADT* fadt = reinterpret_cast<FADT*>(fadt_hdr);
 
+        if(fadt->ACPIEnable!= 0 && fadt->SMICommandPort != 0)
+        {
+            IO::outb(fadt->SMICommandPort, fadt->ACPIEnable);
+        }
+
         bool mmio = false;
         u64 pm1a = 0;
         size_t width;
+        bool b_mmio = false;
+        bool b_enable = false;
+        u64 pm1b = 0;
+        size_t b_width;
 
         if(fadt->X_PM1aCtrlBlock.Address != 0)
         {
@@ -224,6 +233,21 @@ namespace HailOS::PowerManager::ACPI
             PANIC(Status::STATUS_ACPI_ERROR, 0, 0, 0, 0);
         }
 
+        if(fadt->X_PM1bCtrlBlock.Address != 0)
+        {
+            b_mmio = (fadt->X_PM1bCtrlBlock.AddressSpaceID == 0);
+            pm1b = fadt->X_PM1bCtrlBlock.Address;
+            b_width = (fadt->X_PM1bCtrlBlock.AccessSize != 0) ? (1 << (fadt->X_PM1bCtrlBlock.AccessSize - 1)) : fadt->PM1CtrlLength;
+            b_enable = true;
+        }
+        else if (fadt->PM1bCtrlBlock != 0)
+        {
+            b_mmio = false;
+            pm1b = fadt->PM1bCtrlBlock;
+            b_width = fadt->PM1CtrlLength;
+            b_enable = true;
+        }
+
         if(!mmio)
         {
             IO::outw(static_cast<u16>(pm1a), SLP_CMD);
@@ -233,9 +257,21 @@ namespace HailOS::PowerManager::ACPI
             writePhysMem(reinterpret_cast<void*>(pm1a), SLP_CMD);
         }
 
-        Utility::Timer::Sleep(5000);
+        if(b_enable)
+        {
+            if(!b_mmio)
+            {
+                IO::outw(static_cast<u16>(pm1b), SLP_CMD);
+            }
+            else
+            {
+                writePhysMem(reinterpret_cast<void*>(pm1b), SLP_CMD);
+            }
+        }
 
-        PANIC(Status::STATUS_ACPI_ERROR, static_cast<u64>(mmio), pm1a, width, 0);
+        Utility::Timer::Sleep(10000);
+
+        PANIC(Status::STATUS_ACPI_ERROR, static_cast<u64>(mmio), pm1a, width, static_cast<u64>(b_enable));
     }
 
     bool initACPI(RSDPtr* ptr)

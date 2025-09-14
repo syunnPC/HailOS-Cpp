@@ -4,6 +4,7 @@
 #include "cursor.hpp"
 #include "kernellib.hpp"
 #include "console.hpp"
+#include "status.hpp"
 
 #define CALC_PIXEL_OFFSET(x, y) ((y * sPPSL + x) * sizeof(HailOS::Graphic::FrameBufferColor))
 
@@ -44,8 +45,11 @@ namespace HailOS::UI::Cursor
 
         if(!Graphic::isGraphicAvailable())
         {
+            setLastStatus(Status::STATUS_NOT_INITIALIZED);
             return false;
         }
+
+        Kernel::Utility::disableInterrupts();
 
         sScreenSize = Graphic::getScreenResolution();
         sPPSL = Graphic::getPixelsPerScanLine();
@@ -58,6 +62,9 @@ namespace HailOS::UI::Cursor
         {
             MemoryManager::free(gBufferContentsUnderCursor, gCursorSize.Height * sizeof(Graphic::FrameBufferColor*));
             MemoryManager::free(gCursorImage, gCursorSize.Height * sizeof(Graphic::FrameBufferColor*));
+            setLastStatus(Status::STATUS_MEMORY_ALLOCATION_FAILED);
+
+            Kernel::Utility::enableInterrupts();
             return false;
         }
 
@@ -68,6 +75,8 @@ namespace HailOS::UI::Cursor
             if(gCursorImage[h] == nullptr || gBufferContentsUnderCursor[h] == nullptr)
             {
                 //TODO: これまでに確保したメモリの解放処理を実装
+                setLastStatus(Status::STATUS_ERROR);
+                Kernel::Utility::enableInterrupts();
                 return false;
             }
         }
@@ -89,6 +98,7 @@ namespace HailOS::UI::Cursor
         updateBufferUnderCursor();
         drawCursor();
 
+        Kernel::Utility::enableInterrupts();
         return true;
     }
 

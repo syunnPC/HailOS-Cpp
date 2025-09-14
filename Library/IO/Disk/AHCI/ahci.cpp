@@ -1,7 +1,7 @@
 #include "ahci.hpp"
 #include "basetype.hpp"
 #include "pci.hpp"
-#include "timer.hpp"
+#include "time.hpp"
 #include "memutil.hpp"
 #include "common.hpp"
 
@@ -139,7 +139,7 @@ namespace HailOS::Driver::AHCI
 
     static void resetEnable(volatile HBAMemory& hba)
     {
-        u64 start = Utility::Timer::queryPerformanceCounter();
+        u64 start = Utility::Time::queryPerformanceCounter();
         hba.Ghc |= AHCI_GHC_HR;
         while(true)
         {
@@ -148,7 +148,7 @@ namespace HailOS::Driver::AHCI
                 break;
             }
 
-            if(Utility::Timer::convertPerformanceCounterDeltaToMs(Utility::Timer::queryPerformanceCounter() - start) > 1000)
+            if(Utility::Time::convertPerformanceCounterDeltaToMs(Utility::Time::queryPerformanceCounter() - start) > 1000)
             {
                 PANIC(Status::STATUS_DISK_IO_ERROR, 0, 0, 0, 0);
             }
@@ -159,7 +159,7 @@ namespace HailOS::Driver::AHCI
 
     static void stopPort(volatile HBAPort& port)
     {
-        u64 start = Utility::Timer::queryPerformanceCounter();
+        u64 start = Utility::Time::queryPerformanceCounter();
         port.Cmd &= ~HBA_PxCMD_ST;
         port.Cmd &= ~HBA_PxCMD_FRE;
         while(true)
@@ -169,7 +169,7 @@ namespace HailOS::Driver::AHCI
                 break;
             }
 
-            if(Utility::Timer::convertPerformanceCounterDeltaToMs(Utility::Timer::queryPerformanceCounter() - start) > 1000)
+            if(Utility::Time::convertPerformanceCounterDeltaToMs(Utility::Time::queryPerformanceCounter() - start) > 1000)
             {
                 PANIC(Status::STATUS_DISK_IO_ERROR, 0, 0, 0, 0);
             }
@@ -244,10 +244,10 @@ namespace HailOS::Driver::AHCI
     {
         volatile HBAPort& port = *HBA_PORT(&abar, portIndex);
 
-        u64 start = Utility::Timer::queryPerformanceCounter();
+        u64 start = Utility::Time::queryPerformanceCounter();
         while(port.Tfd & (ATA_TFD_BSY | ATA_TFD_DRQ))
         {
-            if(Utility::Timer::convertPerformanceCounterDeltaToMs(Utility::Timer::queryPerformanceCounter() - start) > 1000)
+            if(Utility::Time::convertPerformanceCounterDeltaToMs(Utility::Time::queryPerformanceCounter() - start) > 1000)
             {
                 PANIC(Status::STATUS_DISK_IO_ERROR, 0, 0, 0, 0);
             }
@@ -285,7 +285,7 @@ namespace HailOS::Driver::AHCI
         port.Is = static_cast<u32>(0xFFFFFFFF);
         port.Ci = 1 << 0;
 
-        start = Utility::Timer::queryPerformanceCounter();
+        start = Utility::Time::queryPerformanceCounter();
         while(port.Ci & (1 << 0))
         {
             if(port.Is & TFES_BIT)
@@ -293,7 +293,7 @@ namespace HailOS::Driver::AHCI
                 PANIC(Status::STATUS_DISK_IO_ERROR, 0, 0, 0, 0);
             }
 
-            if(Utility::Timer::convertPerformanceCounterDeltaToMs(Utility::Timer::queryPerformanceCounter() - start) > 1000)
+            if(Utility::Time::convertPerformanceCounterDeltaToMs(Utility::Time::queryPerformanceCounter() - start) > 1000)
             {
                 PANIC(Status::STATUS_DISK_IO_ERROR, 0, 0, 0, 0);
             }
@@ -367,7 +367,7 @@ namespace HailOS::Driver::AHCI
         port.Is = 0xFFFFFFFF;
         port.Ci = 1 << 0;
 
-        u64 start = Utility::Timer::queryPerformanceCounter();
+        u64 start = Utility::Time::queryPerformanceCounter();
         while(true)
         {
             if((port.Ci & (1 << 0)) == 0)
@@ -380,7 +380,7 @@ namespace HailOS::Driver::AHCI
                 return false;
             }
 
-            if(Utility::Timer::convertPerformanceCounterDeltaToMs(Utility::Timer::queryPerformanceCounter() - start) > 1000)
+            if(Utility::Time::convertPerformanceCounterDeltaToMs(Utility::Time::queryPerformanceCounter() - start) > 1000)
             {
                 return false;
             }

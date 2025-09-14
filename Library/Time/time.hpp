@@ -3,7 +3,7 @@
 #include "basetype.hpp"
 #include "timedef.hpp"
 
-namespace HailOS::Utility::Timer
+namespace HailOS::Utility::Time
 {
     u64 queryCurrentUNIXTime(void);
     u64 queryPerformanceCounter(void);

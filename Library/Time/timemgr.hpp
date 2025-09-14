@@ -2,7 +2,7 @@
 
 #include "timedef.hpp"
 
-namespace HailOS::Utility::Timer
+namespace HailOS::Utility::Time
 {
     bool initTime(HardwareClockInfo* info);
 }

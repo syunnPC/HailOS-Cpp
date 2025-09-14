@@ -3,7 +3,7 @@
 #include "io.hpp"
 #include "cstring.hpp"
 #include "common.hpp"
-#include "timer.hpp"
+#include "time.hpp"
 
 namespace HailOS::PowerManager::ACPI
 {
@@ -269,7 +269,7 @@ namespace HailOS::PowerManager::ACPI
             }
         }
 
-        Utility::Timer::Sleep(10000);
+        Utility::Time::Sleep(10000);
 
         PANIC(Status::STATUS_ACPI_ERROR, static_cast<u64>(mmio), pm1a, width, static_cast<u64>(b_enable));
     }

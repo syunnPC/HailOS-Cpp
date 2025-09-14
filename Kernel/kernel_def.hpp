@@ -12,7 +12,7 @@ namespace HailOS::Kernel
     {
         char* Args;
         MemoryManager::MemoryInfo* MemInfo;
-        HailOS::Utility::Timer::HardwareClockInfo* ClockInfo;
+        HailOS::Utility::Time::HardwareClockInfo* ClockInfo;
         Graphic::GraphicInfo* FrameBufferInfo;
         PowerManager::ACPI::RSDPtr* RSDP;
     } PACKED;

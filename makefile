@@ -39,7 +39,7 @@ LIB_IO_PS2_MOUSE_DIR = $(LIBRARY_DIR)/IO/PS2/Mouse
 LIB_IO_TSC_DIR = $(LIBRARY_DIR)/IO/TSC
 LIB_MEMMGR_DIR = $(LIBRARY_DIR)/MemoryManager
 LIB_STDLIB_DIR = $(LIBRARY_DIR)/StdLib
-LIB_TIMER_DIR = $(LIBRARY_DIR)/Timer
+LIB_TIME_DIR = $(LIBRARY_DIR)/Time
 LIB_VGA_DIR = $(LIBRARY_DIR)/VGA
 
 # --- Compiler and Linker Flags ---
@@ -71,7 +71,7 @@ INCLUDES = \
     -I$(LIB_IO_TSC_DIR) \
     -I$(LIB_MEMMGR_DIR) \
     -I$(LIB_STDLIB_DIR) \
-    -I$(LIB_TIMER_DIR) \
+    -I$(LIB_TIME_DIR) \
     -I$(LIB_VGA_DIR) \
     -I$(API_FILEIO_DIR) \
     -I$(UI_BITMAP_DIR) \
@@ -109,7 +109,7 @@ CPP_SOURCES = \
     $(LIB_MEMMGR_DIR)/memmgr.cpp \
     $(LIB_MEMMGR_DIR)/memutil.cpp \
     $(LIB_STDLIB_DIR)/cstring.cpp \
-    $(LIB_TIMER_DIR)/timer.cpp \
+    $(LIB_TIME_DIR)/time.cpp \
     $(LIB_VGA_DIR)/vga.cpp \
     $(LIB_ACPI_DIR)/acpi.cpp \
     $(API_FILEIO_DIR)/fileio.cpp \

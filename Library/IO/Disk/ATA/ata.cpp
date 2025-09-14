@@ -2,7 +2,7 @@
 #include "io.hpp"
 #include "common.hpp"
 #include "status.hpp"
-#include "timer.hpp"
+#include "time.hpp"
 
 namespace HailOS::Driver::ATA
 {
@@ -29,11 +29,11 @@ namespace HailOS::Driver::ATA
     bool checkMasterDevice(void)
     {
         IO::outb(ATA_DATA_PORT + ATA_REG_DRIVE_HEAD, 0xA0);
-        Utility::Timer::SleepNano(SLEEP_LENGTH);
+        Utility::Time::SleepNano(SLEEP_LENGTH);
         IO::outb(ATA_DATA_PORT + ATA_REG_STATUS, 0x00);
-        Utility::Timer::SleepNano(SLEEP_LENGTH);
+        Utility::Time::SleepNano(SLEEP_LENGTH);
         IO::outb(ATA_DATA_PORT + ATA_REG_STATUS, ATA_CMD_IDENTIFY);
-        Utility::Timer::SleepNano(SLEEP_LENGTH);
+        Utility::Time::SleepNano(SLEEP_LENGTH);
 
         u8 status = IO::inb(ATA_DATA_PORT + ATA_REG_STATUS);
         if(status == 0)
@@ -41,19 +41,19 @@ namespace HailOS::Driver::ATA
             return false;
         }
 
-        u64 f = Utility::Timer::queryPerformanceCounterFreq();
+        u64 f = Utility::Time::queryPerformanceCounterFreq();
         double cpns = f / 1000000000;
         u64 waitclk = static_cast<u64>(cpns * SLEEP_LENGTH);
-        u64 start = Utility::Timer::queryPerformanceCounter();
+        u64 start = Utility::Time::queryPerformanceCounter();
         while(IO::inb(ATA_DATA_PORT + ATA_REG_STATUS) & ATA_STATUS_BSY)
         {
-            if(Utility::Timer::queryPerformanceCounter() - start > waitclk)
+            if(Utility::Time::queryPerformanceCounter() - start > waitclk)
             {
                 return false;
             }
         }
 
-        if(Utility::Timer::convertPerformanceCounterDeltaToMs(Utility::Timer::queryPerformanceCounter() - start) >= 1000)
+        if(Utility::Time::convertPerformanceCounterDeltaToMs(Utility::Time::queryPerformanceCounter() - start) >= 1000)
         {
             return false;
         }

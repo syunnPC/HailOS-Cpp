@@ -2,7 +2,7 @@
 #include "basetype.hpp"
 #include "tsc.hpp"
 
-namespace HailOS::Utility::Timer
+namespace HailOS::Utility::Time
 {
     static HardwareClockInfo* sClockInfo = nullptr;
 

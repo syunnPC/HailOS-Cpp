@@ -1,5 +1,6 @@
 #include "memdef.hpp"
 #include "basetype.hpp"
+#include "kernellib.hpp"
 #include "console.hpp"
 #include "cstring.hpp"
 
@@ -36,6 +37,8 @@ namespace HailOS::MemoryManager
             return nullptr;
         }
 
+        Kernel::Utility::disableInterrupts();
+
         size = (size + ALLOC_ALIGN - 1) & ~(ALLOC_ALIGN - 1);
 
         for(size_t i=0; i<sMemoryInfo->FreeRegionCount; i++)
@@ -56,8 +59,12 @@ namespace HailOS::MemoryManager
             sMemoryInfo->FreeMemory[i].Base = aligned_base + size;
             sMemoryInfo->FreeMemory[i].Length = len - (size + padding);
 
+            Kernel::Utility::enableInterrupts();
+
             return allocated;
         }
+
+        Kernel::Utility::enableInterrupts();
 
         return nullptr;
     }
@@ -69,10 +76,14 @@ namespace HailOS::MemoryManager
             return;
         }
 
+        Kernel::Utility::disableInterrupts();
+
         if(sMemoryInfo->FreeRegionCount < MAX_FREE_REGIONS)
         {
             sMemoryInfo->FreeMemory[sMemoryInfo->FreeRegionCount++] = (FreeRegion){.Base = reinterpret_cast<addr_t>(ptr), .Length = size};
         }
+
+        Kernel::Utility::enableInterrupts();
     }
 
     size_t queryAvailableMemorySize(void)
@@ -108,5 +119,22 @@ namespace HailOS::MemoryManager
         }
 
         return result;
+    }
+
+    void showStat()
+    {
+        Console::puts("Region count = ");
+        Console::puts(StdLib::C::utos(sMemoryInfo->FreeRegionCount));
+        Console::puts("\n");
+        for (size_t i = 0; i < sMemoryInfo->FreeRegionCount; i++)
+        {
+            Console::puts("FreeRegion ");
+            Console::puts(StdLib::C::utos(i));
+            Console::puts(" : Base addr = ");
+            Console::puts(StdLib::C::utohexstr(sMemoryInfo->FreeMemory[i].Base));
+            Console::puts(" , Length = ");
+            Console::puts(StdLib::C::utohexstr(sMemoryInfo->FreeMemory[i].Length));
+            Console::puts("\n");
+        }
     }
 }

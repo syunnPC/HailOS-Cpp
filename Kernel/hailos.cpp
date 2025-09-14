@@ -17,7 +17,7 @@
 #include "fat32.hpp"
 #include "pic.hpp"
 #include "cursor.hpp"
-#include "timer.hpp"
+#include "time.hpp"
 #include "bitmap.hpp"
 #include "cstring.hpp"
 #include "memutil.hpp"
@@ -48,7 +48,8 @@ extern "C" void main(HailOS::Kernel::BootInfo *info)
     {
         PANIC(Status::STATUS_NOT_INITIALIZED, 1, static_cast<u64>(getLastStatus()), 0, 0);
     }
-    if (!Utility::Timer::initTime(info->ClockInfo))
+    MemoryManager::showStat();
+    if (!Utility::Time::initTime(info->ClockInfo))
     {
         PANIC(Status::STATUS_NOT_INITIALIZED, 2, static_cast<u64>(getLastStatus()), 0, 0);
     }
@@ -73,7 +74,9 @@ extern "C" void main(HailOS::Kernel::BootInfo *info)
     {
         if (!UI::Cursor::initCursor())
         {
-            Console::puts("Failed to initialize cursor.\n");
+            Console::puts("Failed to initialize cursor.\nlastStatus: ");
+            Console::puts(statusToString(getLastStatus()));
+            Console::puts("\n");
         }
     }
 
@@ -100,8 +103,6 @@ extern "C" void main(HailOS::Kernel::BootInfo *info)
     Console::puts("lastStatus : ");
     Console::puts(statusToString(getLastStatus()));
     Console::puts("\n");
-
-    PowerManager::ACPI::shutdown();
 
     while(true)
     {

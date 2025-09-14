@@ -20,89 +20,19 @@ namespace HailOS::Kernel::Boot
         PANIC(static_cast<Status>(0xC0004000 + vec), frame->RIP, frame->RSP, frame->CS, errorcode);
     }
 
-    __attribute__((naked)) void isrKeyboard(void)
+    __attribute__((interrupt)) void isrKeyboard(InterruptFrame* unused)
     {
-        asm volatile(
-            "push %rax\n\t"
-            "push %rcx\n\t"
-            "push %rdx\n\t"
-            "push %rsi\n\t"
-            "push %rdi\n\t"
-            "push %rbx\n\t"
-            "push %rbp\n\t"
-            "push %r8\n\t"
-            "push %r9\n\t"
-            "push %r10\n\t"
-            "push %r11\n\t"
-            "push %r12\n\t"
-            "push %r13\n\t"
-            "push %r14\n\t"
-            "push %r15\n\t"
-
-            "call keyboardHandler\n\t"
-
-            "pop %r15\n\t"
-            "pop %r14\n\t"
-            "pop %r13\n\t"
-            "pop %r12\n\t"
-            "pop %r11\n\t"
-            "pop %r10\n\t"
-            "pop %r9\n\t"
-            "pop %r8\n\t"
-            "pop %rbp\n\t"
-            "pop %rbx\n\t"
-            "pop %rdi\n\t"
-            "pop %rsi\n\t"
-            "pop %rdx\n\t"
-            "pop %rcx\n\t"
-            "pop %rax\n\t"
-
-            "iretq\n\t"
-        );
+        Driver::PS2::Keyboard::keyboardHandler();
+        return;
     }
 
-    __attribute__((naked)) void isrMouse(void)
+    __attribute__((interrupt)) void isrMouse(InterruptFrame* unused)
     {
-        asm volatile(
-            "push %rax\n\t"
-            "push %rcx\n\t"
-            "push %rdx\n\t"
-            "push %rsi\n\t"
-            "push %rdi\n\t"
-            "push %rbx\n\t"
-            "push %rbp\n\t"
-            "push %r8\n\t"
-            "push %r9\n\t"
-            "push %r10\n\t"
-            "push %r11\n\t"
-            "push %r12\n\t"
-            "push %r13\n\t"
-            "push %r14\n\t"
-            "push %r15\n\t"
-
-            "call mouseHandler\n\t"
-
-            "pop %r15\n\t"
-            "pop %r14\n\t"
-            "pop %r13\n\t"
-            "pop %r12\n\t"
-            "pop %r11\n\t"
-            "pop %r10\n\t"
-            "pop %r9\n\t"
-            "pop %r8\n\t"
-            "pop %rbp\n\t"
-            "pop %rbx\n\t"
-            "pop %rdi\n\t"
-            "pop %rsi\n\t"
-            "pop %rdx\n\t"
-            "pop %rcx\n\t"
-            "pop %rax\n\t"
-
-            "iretq\n\t"
-        );
+        Driver::PS2::Mouse::mouseHandler();
+        return;
     }
 
-    void isrIRQ7(void)
+    __attribute__((interrupt)) void isrIRQ7(InterruptFrame* unused)
     {
         IO::PIC::sendEOI(7);
         return;

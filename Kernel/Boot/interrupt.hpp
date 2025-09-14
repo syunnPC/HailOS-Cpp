@@ -15,9 +15,9 @@ namespace HailOS::Kernel::Boot
 
     void handler(InterruptFrame* frame, u64 vec);
 
-    __attribute__((naked)) void isrKeyboard(void);
-    __attribute__((naked)) void isrMouse(void);
-    __attribute__((naked)) void isrIRQ7(void);
+    __attribute__((interrupt)) void isrKeyboard(InterruptFrame* unused);
+    __attribute__((interrupt)) void isrMouse(InterruptFrame* unused);
+    __attribute__((interrupt)) void isrIRQ7(InterruptFrame* unused);
 
     __attribute__((interrupt)) void handler0(HailOS::Kernel::Boot::InterruptFrame *frame); //#DE
     __attribute__((interrupt)) void handler1(HailOS::Kernel::Boot::InterruptFrame *frame); //#DB

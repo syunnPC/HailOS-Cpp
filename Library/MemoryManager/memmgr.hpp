@@ -5,4 +5,5 @@
 namespace HailOS::MemoryManager
 {
     bool initMemoryManager(MemoryInfo* info);
+    void showStat();
 }

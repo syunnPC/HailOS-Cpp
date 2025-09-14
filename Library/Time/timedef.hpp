@@ -2,7 +2,7 @@
 
 #include "basetype.hpp"
 
-namespace HailOS::Utility::Timer
+namespace HailOS::Utility::Time
 {
     struct HardwareClockInfo
     {

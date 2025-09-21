@@ -23,5 +23,25 @@ namespace HailOS::IO::PCI
         INNOTEK = 0x80EE,
     };
 
+    struct PCILocation
+    {
+        u8 Bus;
+        u8 Device;
+        u8 Function;
+    };
+
+    struct BARInfo
+    {
+        addr_t Base;
+        size_t Size;
+        bool isIO;
+    };
+
+    bool getBAR0(PCILocation loc, BARInfo& info);
+    bool isExistingPCIDevice(u8 bus, u8 dev, u8 function);
+    bool isExistingPCIDevice(PCILocation loc);
+    // bus 0x0~0xFF(255), dev 0x0~0x1F(31), func 0~0x7
     u32 readConfig32(u8 bus, u8 device, u8 function, u8 offset);
+    void writeConfig32(u8 bus, u8 device, u8 function, u8 offset, u32 value);
+    void enableBusMasterMMIO(PCILocation loc);
 }

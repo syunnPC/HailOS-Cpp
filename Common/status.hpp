@@ -49,6 +49,11 @@ namespace HailOS
         STATUS_SECURITY_EXCEPTION = 0xC000401E,
 
         STATUS_ACPI_ERROR = 0xC0005001,
+
+        STATUS_USB_ERROR = 0xC0006001,
+        STATUS_XHCI_ERROR = 0xC006301,
+        STATUS_XHCI_CONTROLLER_NOT_FOUND = 0xC006302,
+        STATUS_XHCI_CONTROLLER_START_FAILED = 0xC006303,
     };
 
     enum class Subsystem
@@ -59,6 +64,10 @@ namespace HailOS
         SUBSYSTEM_FILESYSTEM = 0x3000,
         SUBSYSTEM_PROCESSOR = 0x4000,
         SUBSYSTEM_PWRMANAGER = 0x5000,
+        SUBSYSTEM_USB = 0x6000,
+        SUBSYSTEM_UHCI = 0x6100,
+        SUBSYSTEM_EHCI = 0x6200,
+        SUBSYSTEM_XHCI = 0x6300,
     };
 
     const char* statusToString(Status status);

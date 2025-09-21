@@ -69,6 +69,46 @@ namespace HailOS::MemoryManager
         return nullptr;
     }
 
+    void* allocAligned(size_t size, size_t align)
+    {
+        if(size == 0 || align == 0 || (align & (align - 1)) != 0)
+        {
+            return nullptr;
+        }
+
+        if(sMemoryInfo == nullptr)
+        {
+            return nullptr;
+        }
+
+        Kernel::Utility::disableInterrupts();
+
+        for(size_t i=0; i<sMemoryInfo->FreeRegionCount; i++)
+        {
+            addr_t base = sMemoryInfo->FreeMemory[i].Base;
+            u64 len = sMemoryInfo->FreeMemory[i].Length;
+
+            addr_t aligned_base = (base + align - 1) & ~(align - 1);
+            u64 padding = aligned_base - base;
+
+            if(len < size + padding)
+            {
+                continue;
+            }
+
+            void* allocated = reinterpret_cast<void*>(aligned_base);
+
+            sMemoryInfo->FreeMemory[i].Base = aligned_base + size;
+            sMemoryInfo->FreeMemory[i].Length = len - (size + padding);
+
+            Kernel::Utility::enableInterrupts();
+            return allocated;
+        }
+
+        Kernel::Utility::enableInterrupts();
+        return nullptr;
+    }
+
     void free(void* ptr, size_t size)
     {
         if(ptr == nullptr || size == 0 || sMemoryInfo == nullptr)

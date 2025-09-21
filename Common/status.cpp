@@ -86,6 +86,14 @@ namespace HailOS
                 return "STATUS_SECURITY_EXCEPTION";
             case Status::STATUS_ACPI_ERROR:
                 return "STATUS_ACPI_ERROR";
+            case Status::STATUS_USB_ERROR:
+                return "STATUS_USB_ERROR";
+            case Status::STATUS_XHCI_ERROR:
+                return "STATUS_XHCI_ERROR";
+            case Status::STATUS_XHCI_CONTROLLER_NOT_FOUND:
+                return "STATUS_XHCI_CONTROLLER_NOT_FOUND";
+            case Status::STATUS_XHCI_CONTROLLER_START_FAILED:
+                return "STATUS_XHCI_CONTROLLER_START_FAILED";
         }
     }
 

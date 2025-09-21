@@ -22,6 +22,8 @@
 #include "cstring.hpp"
 #include "memutil.hpp"
 #include "hal_kbd.hpp"
+#include "pci.hpp"
+#include "xhci.hpp"
 
 extern "C" void main(HailOS::Kernel::BootInfo *info)
 {
@@ -48,7 +50,6 @@ extern "C" void main(HailOS::Kernel::BootInfo *info)
     {
         PANIC(Status::STATUS_NOT_INITIALIZED, 1, static_cast<u64>(getLastStatus()), 0, 0);
     }
-    MemoryManager::showStat();
     if (!Utility::Time::initTime(info->ClockInfo))
     {
         PANIC(Status::STATUS_NOT_INITIALIZED, 2, static_cast<u64>(getLastStatus()), 0, 0);
@@ -100,6 +101,8 @@ extern "C" void main(HailOS::Kernel::BootInfo *info)
     Console::puts(" bytes\n");
     Graphic::BitmapImage::drawBitmap("picture1.bmp", Console::getCursorPos(), &rect);
     Console::setCursorPos({0, Console::getCursorPos().Y + rect.Height});
+    IO::USB::xHCI::initxHCI();
+    IO::USB::xHCI::xhciControllerSelfTest();
     Console::puts("lastStatus : ");
     Console::puts(statusToString(getLastStatus()));
     Console::puts("\n");

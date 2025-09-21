@@ -41,6 +41,7 @@ LIB_MEMMGR_DIR = $(LIBRARY_DIR)/MemoryManager
 LIB_STDLIB_DIR = $(LIBRARY_DIR)/StdLib
 LIB_TIME_DIR = $(LIBRARY_DIR)/Time
 LIB_VGA_DIR = $(LIBRARY_DIR)/VGA
+LIB_FONLDR_DIR = $(LIBRARY_DIR)/FontLoader
 
 # --- Compiler and Linker Flags ---
 CXXFLAGS_COMMON = -g -ffreestanding -Wall -Wextra -mno-red-zone -mcmodel=kernel -fno-pie -fno-stack-protector -O0 -std=c++20 -fno-exceptions -fno-rtti
@@ -76,7 +77,8 @@ INCLUDES = \
     -I$(API_FILEIO_DIR) \
     -I$(UI_BITMAP_DIR) \
     -I$(UI_CURSOR_DIR) \
-    -I$(LIB_ACPI_DIR)
+    -I$(LIB_ACPI_DIR) \
+    -I$(LIB_FONLDR_DIR)
 
 # --- Linker ---
 LDSCRIPT = linker.ld
@@ -114,7 +116,8 @@ CPP_SOURCES = \
     $(LIB_ACPI_DIR)/acpi.cpp \
     $(API_FILEIO_DIR)/fileio.cpp \
     $(UI_BITMAP_DIR)/bitmap.cpp \
-    $(UI_CURSOR_DIR)/cursor.cpp
+    $(UI_CURSOR_DIR)/cursor.cpp \
+    $(LIB_FONLDR_DIR)/fontldr.cpp
 
 # C sources (compiled with gcc)
 C_SOURCES = \

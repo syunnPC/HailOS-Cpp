@@ -6,6 +6,7 @@
 #include "vgatype.hpp"
 #include "vga.hpp"
 #include "cursor.hpp"
+#include "kernellib.hpp"
 
 namespace HailOS::Driver::PS2::Mouse
 {
@@ -182,13 +183,20 @@ namespace HailOS::Driver::PS2::Mouse
             return true;
         }
 
+        Kernel::Utility::disableInterrupts();
+        IO::PIC::mask(IRQ_MOUSE);
+
         if(!writeCtrlCmd(0xA8))
         {
+            Kernel::Utility::enableInterrupts();
+            IO::PIC::unmask(IRQ_MOUSE);
             return false;
         }
 
         if(!writeCtrlCmd(0x20))
         {
+            Kernel::Utility::enableInterrupts();
+            IO::PIC::unmask(IRQ_MOUSE);
             return false;
         }
 
@@ -203,6 +211,8 @@ namespace HailOS::Driver::PS2::Mouse
 
         if(wait <= 0)
         {
+            Kernel::Utility::enableInterrupts();
+            IO::PIC::unmask(IRQ_MOUSE);
             return false;
         }
 
@@ -212,36 +222,51 @@ namespace HailOS::Driver::PS2::Mouse
 
         if(!writeCtrlCmd(0x60))
         {
+            Kernel::Utility::enableInterrupts();
+            IO::PIC::unmask(IRQ_MOUSE);
             return false;
         }
 
         if(!writeCtrlData(status))
         {
+            Kernel::Utility::enableInterrupts();
+            IO::PIC::unmask(IRQ_MOUSE);
             return false;
         }
 
-        while(IO::inb(PS2_STATUS_PORT) & 0x01)
+        for(int i=0; i<16; i++)
         {
-            (void)IO::inb(PS2_DATA_PORT);
+            if(IO::inb(PS2_STATUS_PORT) & 0x01)
+            {
+                (void)IO::inb(PS2_DATA_PORT);
+            }
         }
 
         if(!writeMouse(0xF6))
         {
+            Kernel::Utility::enableInterrupts();
+            IO::PIC::unmask(IRQ_MOUSE);
             return false;
         }
 
         if(!waitAck(PS2_WAIT_LOOP))
         {
+            Kernel::Utility::enableInterrupts();
+            IO::PIC::unmask(IRQ_MOUSE);
             return false;
         }
 
         if(!writeMouse(0xF4))
         {
+            Kernel::Utility::enableInterrupts();
+            IO::PIC::unmask(IRQ_MOUSE);
             return false;
         }
 
         if(!waitAck(PS2_WAIT_LOOP))
         {
+            Kernel::Utility::enableInterrupts();
+            IO::PIC::unmask(IRQ_MOUSE);
             return false;
         }
 
@@ -250,7 +275,8 @@ namespace HailOS::Driver::PS2::Mouse
 
         sInitialized = true;
         sScreenResolution = Graphic::getScreenResolution();
-
+        IO::PIC::unmask(IRQ_MOUSE);
+        Kernel::Utility::enableInterrupts();
         return true;
     }
 }

@@ -274,7 +274,7 @@ namespace HailOS::IO::USB::xHCI
         it->IMAN = it->IMAN | 1u;
     }
 
-    static bool pollEvent(TRB* outEv)
+    bool pollEvent(TRB* outEv)
     {
         TRB ev = *sEventDeq;
 

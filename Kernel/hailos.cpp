@@ -144,7 +144,8 @@ extern "C" void main(HailOS::Kernel::BootInfo *info)
     Console::puts(statusToString(getLastStatus()));
     Console::puts("\n");
 
-    /*
+    IO::USB::xHCI::TRB ev{};
+
     while(true)
     {
         if(Driver::PS2::Mouse::gMouseMoved)
@@ -152,8 +153,9 @@ extern "C" void main(HailOS::Kernel::BootInfo *info)
             UI::Cursor::updateCursor(COORD(Driver::PS2::Mouse::gMouseState.X, Driver::PS2::Mouse::gMouseState.Y));
             Driver::PS2::Mouse::gMouseMoved = false;
         }
+        if(IO::USB::xHCI::pollEvent(&ev))
+        {
+            //ログ
+        }
     }
-    */
-
-    IO::USB::xHCI::usbEventLoop();
 }

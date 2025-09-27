@@ -67,6 +67,24 @@ namespace HailOS::IO::PIC
         outb(port, value);
     }
 
+    void mask(u8 irq)
+    {
+        u16 port;
+        u8 value;
+        if(irq < 8)
+        {
+            port = PIC_MASTER_DATA;
+        }
+        else
+        {
+            port = PIC_SLAVE_DATA;
+            irq -= 8;
+        }
+
+        value = inb(port) | (1 << irq);
+        outb(port, value);
+    }
+
     void maskAll(void)
     {
         outb(PIC_MASTER_DATA, 0xFF);

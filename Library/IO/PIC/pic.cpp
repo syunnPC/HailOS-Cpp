@@ -67,6 +67,14 @@ namespace HailOS::IO::PIC
         outb(port, value);
     }
 
+    void maskAll(void)
+    {
+        outb(PIC_MASTER_DATA, 0xFF);
+        wait();
+        outb(PIC_SLAVE_DATA, 0xFF);
+        wait();
+    }
+
     void sendEOI(u8 irq)
     {
         if(irq >= 8)

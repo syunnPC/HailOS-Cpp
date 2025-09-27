@@ -275,4 +275,5 @@ namespace HailOS::Kernel::Boot
     __attribute__((interrupt)) void handler253(HailOS::Kernel::Boot::InterruptFrame *frame);
     __attribute__((interrupt)) void handler254(HailOS::Kernel::Boot::InterruptFrame *frame);
     __attribute__((interrupt)) void handler255(HailOS::Kernel::Boot::InterruptFrame *frame);
+    __attribute__((interrupt)) void handlerRet(InterruptFrame* frame);
 }

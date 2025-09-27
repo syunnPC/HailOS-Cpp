@@ -5,6 +5,7 @@
 #include "status.hpp"
 #include "cursor.hpp"
 #include "kernellib.hpp"
+#include "kd.hpp"
 
 #define CALC_PIXEL_OFFSET(x, y) ((y * HailOS::Graphic::sGraphicInfo->PixelsPerScanLine + x) * HailOS::Graphic::PIXEL_SIZE)
 

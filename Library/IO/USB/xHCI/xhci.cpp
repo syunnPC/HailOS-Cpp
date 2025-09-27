@@ -181,17 +181,19 @@ namespace HailOS::IO::USB::xHCI
         return true;
     }
 
-    static bool portResetWait(u32 portIndex)
+    bool portResetWait(u32 portIndex)
     {
         auto p=port(portIndex);
         u32 v = load32(&p->PORTSC);
         if(!(v & (1 << 0)))
         {
-            return false; //接続済み?
+            return false; //未接続
         }
 
+        //PR=1
         store32(&p->PORTSC, (v & ~0x1F) | (1 << 4));
 
+        //PRクリア待ち
         for(volatile int i = 0; i < 100000000; i++)
         {
             v = load32(&p->PORTSC);
@@ -201,7 +203,24 @@ namespace HailOS::IO::USB::xHCI
             }
         }
 
-        //TODO:速度や状態を確認？
+        //TODO:速度や状態を確認？↓とりあえず簡易ダンプ
+
+        u32 v2 = load32(&port(portIndex)->PORTSC);
+        bool ccs = v2 & (1 << 0);
+        bool ped = v2 & (1 << 1);
+        u32 speed = (v2 >> 10) & 0xF;
+        Console::puts("Port ");
+        Console::puts(StdLib::C::utos(portIndex));
+        Console::puts(" : CCS = ");
+        Console::puts(StdLib::C::utos(ccs));
+        Console::puts(", PED = ");
+        Console::puts(StdLib::C::utos(ped));
+        Console::puts(", SPEED = ");
+        Console::puts(StdLib::C::utos(speed));
+        Console::puts(", raw = ");
+        Console::puts(StdLib::C::utohexstr(v2));
+        Console::puts("\n");
+
         return true;
     }
 
@@ -268,6 +287,7 @@ namespace HailOS::IO::USB::xHCI
         {
             TRB* next = reinterpret_cast<TRB*>(xhciCmdTRBPointer(ev));
             sEventDeq = next;
+            sEventCycle ^= 1;
             xhciAdvanceERDP(sEventDeq);
             return pollEvent(outEv);
         }
@@ -282,6 +302,48 @@ namespace HailOS::IO::USB::xHCI
         }
 
         xhciAdvanceERDP(sEventDeq);
+
+        u8 type = xhciEventType(ev);
+
+        switch(type)
+        {
+            case static_cast<u8>(EventType::CommandCompletion):
+                {
+                    u8 ccode = xhciCompletionCode(ev);
+                    u8 slot = xhciEventSlotID(ev);
+                    Console::puts("xHCI: Command completion, cc = ");
+                    Console::puts(StdLib::C::utos(ccode));
+                    Console::puts(", slot = ");
+                    Console::puts(StdLib::C::utos(slot));
+                    Console::puts("\n");
+                    break;
+                }
+            case static_cast<u8>(EventType::PortStatusChange):
+                {
+                    u32 portId = ev.P0 & 0xFF;
+                    Console::puts("xHCI: Port status changed at port ");
+                    Console::puts(StdLib::C::utos(portId));
+                    Console::puts("\n");
+                    dumpPortStatus();
+                    break;
+                }
+            case static_cast<u8>(EventType::Transfer):
+                //未実装だけど使う
+                {
+                    u8 ccode = xhciCompletionCode(ev);
+                    u8 slot = xhciEventSlotID(ev);
+                    Console::puts("xHCI: Transfer event, cc = ");
+                    Console::puts(StdLib::C::utos(ccode));
+                    Console::puts(", slot = ");
+                    Console::puts(StdLib::C::utos(slot));
+                    Console::puts("\n");
+                    break;
+                }
+            default:
+                Console::puts("xHCI: Unknown event.\n");
+                break;
+        }
+
         return true;
     }
 
@@ -397,5 +459,40 @@ namespace HailOS::IO::USB::xHCI
         }
 
         return true;
+    }
+
+    void dumpPortStatus()
+    {
+        u32 ports = (cap()->HCSParams1 >> 24) & 0xFF;
+        for(u32 i=1; i<=ports; i++)
+        {
+            u32 v = load32(&port(i)->PORTSC);
+            bool ccs = v & (1 << 0);
+            bool ped = v & (1 << 1);
+            u32 speed = (v >> 10) & 0xF;
+            Console::puts("Port ");
+            Console::puts(StdLib::C::utos(i));
+            Console::puts(" : CCS = ");
+            Console::puts(StdLib::C::utos(ccs));
+            Console::puts(", PED = ");
+            Console::puts(StdLib::C::utos(ped));
+            Console::puts(", SPEED = ");
+            Console::puts(StdLib::C::utos(speed));
+            Console::puts(", raw = ");
+            Console::puts(StdLib::C::utohexstr(v));
+            Console::puts("\n");
+        }
+    }
+
+    void usbEventLoop(void)
+    {
+        TRB ev{};
+        while(true)
+        {
+            if(pollEvent(&ev))
+            {
+                //ログ
+            }
+        }
     }
 }

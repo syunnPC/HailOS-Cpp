@@ -42,6 +42,7 @@ LIB_STDLIB_DIR = $(LIBRARY_DIR)/StdLib
 LIB_TIME_DIR = $(LIBRARY_DIR)/Time
 LIB_VGA_DIR = $(LIBRARY_DIR)/VGA
 LIB_IO_USB_XHCI_DIR = $(LIBRARY_DIR)/IO/USB/xHCI
+LIB_KERNEL_DEBUGLIB_DIR = $(KERNEL_DIR)/DebugLib
 
 # --- Compiler and Linker Flags ---
 CXXFLAGS_COMMON = -g -ffreestanding -Wall -Wextra -mno-red-zone -mcmodel=kernel -fno-pie -fno-stack-protector -O0 -std=c++20 -fno-exceptions -fno-rtti
@@ -78,7 +79,8 @@ INCLUDES = \
     -I$(UI_BITMAP_DIR) \
     -I$(UI_CURSOR_DIR) \
     -I$(LIB_ACPI_DIR) \
-    -I$(LIB_IO_USB_XHCI_DIR)
+    -I$(LIB_IO_USB_XHCI_DIR) \
+    -I$(LIB_KERNEL_DEBUGLIB_DIR)
 
 # --- Linker ---
 LDSCRIPT = linker.ld
@@ -117,7 +119,11 @@ CPP_SOURCES = \
     $(API_FILEIO_DIR)/fileio.cpp \
     $(UI_BITMAP_DIR)/bitmap.cpp \
     $(UI_CURSOR_DIR)/cursor.cpp \
-    $(LIB_IO_USB_XHCI_DIR)/xhci.cpp
+    $(LIB_IO_USB_XHCI_DIR)/xhci.cpp \
+    $(KERNEL_DIR)/paging.cpp \
+    $(KERNEL_DIR)/cr3ctrl.cpp \
+    $(LIB_CONSOLE_DIR)/kdconsole.cpp \
+    $(LIB_KERNEL_DEBUGLIB_DIR)/kd.cpp
 
 # C sources (compiled with gcc)
 C_SOURCES = \

@@ -159,4 +159,7 @@ namespace HailOS::IO::USB::xHCI
 
     bool initxHCI();
     bool xhciControllerSelfTest(void);
+    void dumpPortStatus();
+    bool portResetWait(u32 portIndex);
+    void usbEventLoop();
 }

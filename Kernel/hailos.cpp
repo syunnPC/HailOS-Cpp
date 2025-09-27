@@ -24,27 +24,51 @@
 #include "hal_kbd.hpp"
 #include "pci.hpp"
 #include "xhci.hpp"
+#include "cr3ctrl.hpp"
+#include "paging.hpp"
+#include "kdconsole.hpp"
+#include "kd.hpp"
+
+namespace HailOS::Kernel::Boot
+{
+    BootInfo* bootInfoPtr = nullptr;
+}
 
 extern "C" void main(HailOS::Kernel::BootInfo *info)
 {
     using namespace HailOS;
 
+    HailOS::Kernel::Boot::bootInfoPtr = info;
+
+    IO::PIC::maskAll();
+    
+    Kernel::Utility::setForceDisableInterrupt(true);
+    Kernel::Utility::disableInterrupts();
+
+    Kernel::DebugConsole::initDebugConsole(info->FrameBufferInfo);
+    Kernel::DebugConsole::printStringRawDbg("Successfully initialized debug console.\n");
+
+    MemoryManager::ReserveRange(*info->MemInfo, reinterpret_cast<u64>(Kernel::Boot::_kernel_start), reinterpret_cast<u64>(Kernel::Boot::_kernel_end) - reinterpret_cast<u64>(Kernel::Boot::_kernel_start));
+    MemoryManager::initPageTableAllocator(*info->MemInfo);
+
     Kernel::Boot::initGDTandTSS(HailOS::Kernel::Boot::kernel_stack_top);
-
-    IO::PIC::remap(0x20, 0x28);
-
     Kernel::Boot::initIDT();
-    IO::PIC::unmask(2); //PIC スレーブ
-    IO::PIC::unmask(Driver::PS2::Mouse::IRQ_MOUSE);
-    IO::PIC::unmask(Driver::PS2::Keyboard::IRQ_KEYBOARD);
+    u64 cr3 = 0;
 
-    if (!MemoryManager::initMemoryManager(info->MemInfo))
+    //必ずkeepNullUnmapped=falseで呼ぶ、NULL周辺2MiBエリアにFree領域がある場合がある.
+    if(Kernel::buildIdentitiyMap2M(info->MemInfo, cr3, info->FrameBufferInfo->FrameBufferBase, false))
     {
-        Kernel::forceReboot();
+        Kernel::checkVAMapped(cr3);
+        Kernel::loadCR3(cr3);
+        Kernel::flushTLBAll();
+    }
+    if(!MemoryManager::initMemoryManager(info->MemInfo))
+    {
+        PANIC(Status::STATUS_NOT_INITIALIZED, 0, 0, 0, 0);
     }
     if (!Graphic::initGraphics(info->FrameBufferInfo, Console::DEFAULT_CONSOLE_BACKGROUND_COLOR))
     {
-        Kernel::forceReboot();
+        PANIC(Status::STATUS_NOT_INITIALIZED, 0, 0, 0, 0);
     }
     if (!Console::initConsole())
     {
@@ -81,11 +105,23 @@ extern "C" void main(HailOS::Kernel::BootInfo *info)
         }
     }
 
+    if(cr3 == 0)
+    {
+        Console::puts("Failed to build page table.\n");
+    }
+
+    Kernel::Utility::setForceDisableInterrupt(false);
+
+    IO::PIC::remap(0x20, 0x28);
+    IO::PIC::unmask(2); //PIC スレーブ
+    IO::PIC::unmask(Driver::PS2::Mouse::IRQ_MOUSE);
+    IO::PIC::unmask(Driver::PS2::Keyboard::IRQ_KEYBOARD);
+
     Kernel::Utility::enableInterrupts();
 
     Graphic::Rectangle rect;
 
-    Console::puts("HailOS-C++ version 0.3\nSee https://github.com/syunnPC/HailOS-Cpp\nFramebuffer address: ");
+    Console::puts("HailOS-C++ version 0.4 Beta\nSee https://github.com/syunnPC/HailOS-Cpp\nFramebuffer address: ");
     Console::puts(StdLib::C::utohexstr(Graphic::getBufferAddress()));
     Console::puts(", resolution ");
     Console::puts(StdLib::C::utos(Graphic::getScreenResolution().Width));
@@ -103,10 +139,12 @@ extern "C" void main(HailOS::Kernel::BootInfo *info)
     Console::setCursorPos({0, Console::getCursorPos().Y + rect.Height});
     IO::USB::xHCI::initxHCI();
     IO::USB::xHCI::xhciControllerSelfTest();
+    IO::USB::xHCI::dumpPortStatus();
     Console::puts("lastStatus : ");
     Console::puts(statusToString(getLastStatus()));
     Console::puts("\n");
 
+    /*
     while(true)
     {
         if(Driver::PS2::Mouse::gMouseMoved)
@@ -115,4 +153,7 @@ extern "C" void main(HailOS::Kernel::BootInfo *info)
             Driver::PS2::Mouse::gMouseMoved = false;
         }
     }
+    */
+
+    IO::USB::xHCI::usbEventLoop();
 }

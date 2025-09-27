@@ -3,12 +3,61 @@
 #include "kernellib.hpp"
 #include "console.hpp"
 #include "cstring.hpp"
+#include "init.hpp"
+#include "memutil.hpp"
+#include "kd.hpp"
 
 namespace HailOS::MemoryManager
 {
     static constexpr auto ALLOC_ALIGN = 8;
 
     static MemoryInfo* sMemoryInfo = nullptr;
+
+    static inline u64 end(const MemoryRegion& r)
+    {
+        return r.Base + r.Length;
+    }
+
+    static inline bool overlap(u64 b0, u64 e0, u64 b1, u64 e1)
+    {
+        return (b0<e1) && (b1 < e0);
+    }
+
+    void ReserveRange(MemoryInfo& info, u64 base, u64 length)
+    {
+        u64 rb = base;
+        u64 re = base + length;
+
+        for(u64 i=0; i<info.FreeRegionCount;)
+        {
+            MemoryRegion r = info.FreeMemory[i];
+            u64 fb = r.Base;
+            u64 fe = end(r);
+            if(!overlap(fb, fe, rb, re))
+            {
+                i++;
+                continue;
+            }
+
+            MemoryRegion left = {fb, (rb>fb)?(rb-fb) : 0};
+            MemoryRegion right = {(re<fe)?re:fe, (re<fe)?(fe-re) : 0};
+
+            info.FreeMemory[i] = info.FreeMemory[info.FreeRegionCount - 1];
+            info.FreeRegionCount--;
+
+            if(left.Length)
+            {
+                info.FreeMemory[info.FreeRegionCount++] = left;
+            }
+
+            if(right.Length)
+            {
+                info.FreeMemory[info.FreeRegionCount++] = right;
+            }
+        }
+
+        info.ReservedMemory[info.ReservedRegionCount++] = {rb, length};
+    }
 
     bool initMemoryManager(MemoryInfo* info)
     {
@@ -23,6 +72,37 @@ namespace HailOS::MemoryManager
         }
 
         return true;
+    }
+
+    static constexpr u64 PT_POOL_SIZE = 8 * 1024 * 1024;
+    static u64 sPTBase, sPTPoolEnd, sPTPtr;
+
+    static inline u64 alignUp(u64 x, u64 a)
+    {
+        return (x + a - 1) & ~(a - 1);
+    }
+
+    void initPageTableAllocator(MemoryInfo& info)
+    {
+        u64 base = alignUp(reinterpret_cast<u64>(Kernel::Boot::_kernel_end), 0x1000);
+        ReserveRange(info, base, PT_POOL_SIZE);
+        sPTBase = base;
+        sPTPoolEnd = base + PT_POOL_SIZE;
+        sPTPtr = base;
+    }
+
+    void* ptAlloc4K()
+    {
+        sPTPtr = alignUp(sPTPtr, 0x1000);
+        if(sPTPtr + 4096 > sPTPoolEnd)
+        {
+            return nullptr;
+        }
+
+        void* p = reinterpret_cast<void*>(sPTPtr);
+        sPTPtr += 4096;
+        fill(p, 4096, 0);
+        return p;
     }
 
     void* alloc(size_t size)
@@ -118,9 +198,9 @@ namespace HailOS::MemoryManager
 
         Kernel::Utility::disableInterrupts();
 
-        if(sMemoryInfo->FreeRegionCount < MAX_FREE_REGIONS)
+        if(sMemoryInfo->FreeRegionCount < MAX_REGIONS)
         {
-            sMemoryInfo->FreeMemory[sMemoryInfo->FreeRegionCount++] = (FreeRegion){.Base = reinterpret_cast<addr_t>(ptr), .Length = size};
+            sMemoryInfo->FreeMemory[sMemoryInfo->FreeRegionCount++] = (MemoryRegion){.Base = reinterpret_cast<addr_t>(ptr), .Length = size};
         }
 
         Kernel::Utility::enableInterrupts();

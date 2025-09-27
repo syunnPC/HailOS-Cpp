@@ -9,14 +9,12 @@
 
 namespace HailOS::Kernel::Boot
 {
-    constexpr auto IDT_ENTRIES = 256;
-
     //必要なGDTエントリ:null+r0code+r0data+r3code+r3data+tss(2) = 7
-    alignas(16) static u8 sGDT[7 * sizeof(GDTEntry)];
-    static GDTR sGDTPtr;
-    static TSS sTSS;
-    alignas(16) static IDTEntry sIDT[IDT_ENTRIES];
-    static IDTR sIDTPtr;
+    alignas(4096) u8 gGDT[7 * sizeof(GDTEntry)];
+    alignas(4096) GDTR gGDTPtr;
+    alignas(4096) TSS gTSS;
+    alignas(4096) IDTEntry gIDT[IDT_ENTRIES];
+    alignas(4096) IDTR gIDTPtr;
 
     constexpr auto IDT_TYPE_INTERRUPT_GATE = 0x8E;
     constexpr auto IDT_TYPE_TRAP_GATE = 0x8F;
@@ -74,28 +72,28 @@ namespace HailOS::Kernel::Boot
 
     void initGDTandTSS(void* kernelStackTop)
     {
-        StdLib::C::memset(sGDT, 0, sizeof(sGDT));
-        StdLib::C::memset(&sTSS, 0, sizeof(sTSS));
+        StdLib::C::memset(gGDT, 0, sizeof(gGDT));
+        StdLib::C::memset(&gTSS, 0, sizeof(gTSS));
 
-        GDTEntry* gdt = reinterpret_cast<GDTEntry*>(sGDT);
+        GDTEntry* gdt = reinterpret_cast<GDTEntry*>(gGDT);
 
         setGDTEntry(&gdt[1], 0, 0, 0x9A, 0xA0);
         setGDTEntry(&gdt[2], 0, 0, 0x92, 0x00);
         setGDTEntry(&gdt[3], 0, 0, 0xFA, 0xA0);
         setGDTEntry(&gdt[4], 0, 0, 0xF2, 0x00);
 
-        TSSDescriptor* tss = reinterpret_cast<TSSDescriptor*>(&sGDT[5 * sizeof(GDTEntry)]);
-        u64 tss_base = reinterpret_cast<u64>(&sTSS);
+        TSSDescriptor* tss = reinterpret_cast<TSSDescriptor*>(&gGDT[5 * sizeof(GDTEntry)]);
+        u64 tss_base = reinterpret_cast<u64>(&gTSS);
         u32 tss_lim = static_cast<u32>(sizeof(TSS) - 1);
 
         setTSSDescriptor(tss, tss_base, tss_lim, 0x89, 0x00);
 
-        sTSS.Rsp0 = reinterpret_cast<u64>(kernelStackTop);
-        sTSS.IoMapBase = sizeof(TSS);
-        sGDTPtr.Limit = static_cast<u16>(sizeof(sGDT) - 1);
-        sGDTPtr.Base = reinterpret_cast<u64>(sGDT);
+        gTSS.Rsp0 = reinterpret_cast<u64>(kernelStackTop);
+        gTSS.IoMapBase = sizeof(TSS);
+        gGDTPtr.Limit = static_cast<u16>(sizeof(gGDT) - 1);
+        gGDTPtr.Base = reinterpret_cast<u64>(gGDT);
 
-        loadGDT(&sGDTPtr);
+        loadGDT(&gGDTPtr);
 
         reloadSegmentsAndLoadTSS(GDT_KERNEL_DS, GDT_KERNEL_CS, (GDT_USER_DS | 0x3), (GDT_USER_CS | 0x3), GDT_TSS_SEL);
     }
@@ -103,13 +101,13 @@ namespace HailOS::Kernel::Boot
     void setIDTEntry(int vec, void* handler,u8 typeAttribute)
     {
         u64 addr = reinterpret_cast<u64>(handler);
-        sIDT[vec].OffsetLow = static_cast<u16>(addr & 0xFFFF);
-        sIDT[vec].Selector = 0x08;
-        sIDT[vec].Ist = 0;
-        sIDT[vec].TypeAttribute = typeAttribute;
-        sIDT[vec].OffsetMid = static_cast<u16>((addr >> 16) & 0xFFFF);
-        sIDT[vec].OffsetHigh = static_cast<u32>((addr >> 32));
-        sIDT[vec].Reserved = 0;
+        gIDT[vec].OffsetLow = static_cast<u16>(addr & 0xFFFF);
+        gIDT[vec].Selector = 0x08;
+        gIDT[vec].Ist = 0;
+        gIDT[vec].TypeAttribute = typeAttribute;
+        gIDT[vec].OffsetMid = static_cast<u16>((addr >> 16) & 0xFFFF);
+        gIDT[vec].OffsetHigh = static_cast<u32>((addr >> 32));
+        gIDT[vec].Reserved = 0;
     }
 
     void initIDT(void)
@@ -164,6 +162,7 @@ namespace HailOS::Kernel::Boot
         setIDTEntry(45, reinterpret_cast<void*>(handler45), IDT_TYPE_INTERRUPT_GATE);
         setIDTEntry(46, reinterpret_cast<void*>(handler46), IDT_TYPE_INTERRUPT_GATE);
         setIDTEntry(47, reinterpret_cast<void*>(handler47), IDT_TYPE_INTERRUPT_GATE);
+        /*
         setIDTEntry(48, reinterpret_cast<void*>(handler48), IDT_TYPE_INTERRUPT_GATE);
         setIDTEntry(49, reinterpret_cast<void*>(handler49), IDT_TYPE_INTERRUPT_GATE);
         setIDTEntry(50, reinterpret_cast<void*>(handler50), IDT_TYPE_INTERRUPT_GATE);
@@ -372,14 +371,20 @@ namespace HailOS::Kernel::Boot
         setIDTEntry(253, reinterpret_cast<void *>(handler253), IDT_TYPE_INTERRUPT_GATE);
         setIDTEntry(254, reinterpret_cast<void *>(handler254), IDT_TYPE_INTERRUPT_GATE);
         setIDTEntry(255, reinterpret_cast<void *>(handler255), IDT_TYPE_INTERRUPT_GATE);
+        */
+
+        for(int i=48; i<256; i++)
+        {
+            setIDTEntry(i, reinterpret_cast<void*>(handlerRet), IDT_TYPE_INTERRUPT_GATE);
+        }
 
         setIDTEntry(IRQ_IDT(Driver::PS2::Keyboard::IRQ_KEYBOARD), reinterpret_cast<void*>(isrKeyboard), IDT_TYPE_INTERRUPT_GATE);
         setIDTEntry(IRQ_IDT(Driver::PS2::Mouse::IRQ_MOUSE), reinterpret_cast<void*>(isrMouse), IDT_TYPE_INTERRUPT_GATE);
         setIDTEntry(IRQ_IDT(7), reinterpret_cast<void*>(isrIRQ7), IDT_TYPE_INTERRUPT_GATE);
 
-        sIDTPtr.Base = reinterpret_cast<u64>(&sIDT);
-        sIDTPtr.Limit = sizeof(sIDT) - 1;
+        gIDTPtr.Base = reinterpret_cast<u64>(&gIDT);
+        gIDTPtr.Limit = sizeof(gIDT) - 1;
 
-        asm volatile("lidt %0" : : "m"(sIDTPtr));
+        asm volatile("lidt %0" : : "m"(gIDTPtr));
     }
 }

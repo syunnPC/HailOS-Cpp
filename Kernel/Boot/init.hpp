@@ -11,7 +11,7 @@ namespace HailOS::Kernel::Boot
     constexpr u16 GDT_USER_DS = 0x20;
     constexpr u16 GDT_TSS_SEL = 0x28;
 
-    extern "C" u8 kernel_stack_top[];
+    constexpr auto IDT_ENTRIES = 256;
 
     struct GDTR
     {
@@ -76,6 +76,20 @@ namespace HailOS::Kernel::Boot
         u32 BaseUpper;
         u32 Reserved;
     } PACKED;
+
+    extern u8 gGDT[7 * sizeof(GDTEntry)];
+    extern GDTR gGDTPtr;
+    extern TSS gTSS;
+    extern IDTEntry gIDT[IDT_ENTRIES];
+    extern IDTR gIDTPtr;
+
+    extern "C"
+    {
+        extern char _kernel_start[];
+        extern char _kernel_end[];
+    }
+
+    extern "C" u8 kernel_stack_top[];
 
     void initGDTandTSS(void* kenrelStackTop);
     void initIDT(void);

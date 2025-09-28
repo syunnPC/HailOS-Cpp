@@ -3,6 +3,7 @@
 #include "cstring.hpp"
 #include "kd.hpp"
 #include "common.hpp"
+#include "vga.hpp"
 
 #define MAKE_RGB(r, g, b) ((HailOS::Graphic::RGB){r, g, b})
 #define CALC_PIXEL_OFFSET(x, y) ((y * sPPSL + x) * 4)
@@ -15,6 +16,8 @@ namespace HailOS::Kernel::DebugConsole
     static u64 sPPSL;
     static Graphic::PixelFormat sPixelFormat;
     static bool sInitialized = false;
+    static Graphic::RGB sCharColor, sBgColor;
+    static Graphic::RGB* sCharBgColor;
 
     Graphic::FrameBufferColor convertColor(Graphic::RGB color)
     {
@@ -71,13 +74,13 @@ namespace HailOS::Kernel::DebugConsole
             return;
         }
 
-        Graphic::FrameBufferColor dest_color = convertColor(color);
+        Graphic::FrameBufferColor dest_color = DebugConsole::convertColor(color);
         addr_t offset = CALC_PIXEL_OFFSET(location.X, location.Y);
         Graphic::FrameBufferColor *p = reinterpret_cast<Graphic::FrameBufferColor*>(reinterpret_cast<addr_t>(sFrameBufferAddress) + offset);
         *p = dest_color;
     }
 
-    void initDebugConsole(Graphic::GraphicInfo* info)
+    void initDebugConsole(Graphic::GraphicInfo* info, Graphic::RGB charColor = Graphic::COLOR_WHITE, Graphic::RGB bgColor = Graphic::COLOR_BLACK, Graphic::RGB* charBgColor = nullptr)
     {
         sFrameBufferAddress = info->FrameBufferBase;
         sPPSL = info->PixelsPerScanLine;
@@ -85,12 +88,15 @@ namespace HailOS::Kernel::DebugConsole
         sScreenSize = RECT(info->HorizontalResolution, info->VerticalResolution);
         sInitialized = true;
         sCursorPos = COORD(0, 0);
+        sBgColor = bgColor;
+        sCharColor = charColor;
+        sCharBgColor = charBgColor;
 
         for (u32 y = 0; y < sScreenSize.Height; y++)
         {
             for (u32 x = 0; x < sScreenSize.Width; x++)
             {
-                drawPixelRaw(COORD(x, y), MAKE_RGB(0, 0, 0));
+                drawPixelRaw(COORD(x, y), bgColor);
             }
         }
     }
@@ -106,6 +112,11 @@ namespace HailOS::Kernel::DebugConsole
 
     void printCharRawDbg(char ch)
     {
+        if(!sInitialized)
+        {
+            return;
+        }
+
         if(isVisibleChar(ch))
         {
             const u8* font = HailOS::Console::gConsoleFont[static_cast<int>(ch)];
@@ -121,7 +132,14 @@ namespace HailOS::Kernel::DebugConsole
                 {
                     if(line & (1 << (7-k)))
                     {
-                        drawPixelRaw(COORD(sCursorPos.X + k, sCursorPos.Y + i), MAKE_RGB(255, 255, 255));
+                        drawPixelRaw(COORD(sCursorPos.X + k, sCursorPos.Y + i), sCharColor);
+                    }
+                    else
+                    {
+                        if(sCharBgColor != nullptr)
+                        {
+                            drawPixelRaw(COORD(sCursorPos.X + k, sCursorPos.Y + i), *sCharBgColor);
+                        }
                     }
                 }
             }
@@ -154,11 +172,40 @@ namespace HailOS::Kernel::DebugConsole
 
     void printStringRawDbg(const char* str)
     {
+        if(!sInitialized)
+        {
+            return;
+        }
+
         for(size_t i=0; i<StdLib::C::strlen(str); i++)
         {
             printCharRawDbg(str[i]);
         }
+    }
 
-        for(size_t i=0; i<1000000; i++);
+    void setBackgroundColor(Graphic::RGB color)
+    {
+        if(!sInitialized)
+        {
+            return;
+        }
+
+        for (u32 y = 0; y < sScreenSize.Height; y++)
+        {
+            for (u32 x = 0; x < sScreenSize.Width; x++)
+            {
+                drawPixelRaw(COORD(x, y), sBgColor);
+            }
+        }
+    }
+
+    void setCharColor(Graphic::RGB color)
+    {
+        sCharColor = color;
+    }
+
+    void setCharBgColor(Graphic::RGB* color)
+    {
+        sCharBgColor = color;
     }
 }

@@ -48,36 +48,7 @@ namespace HailOS::Kernel
 
         sInPanic = true;
 
-        /*
-        Graphic::setBackgroundColor(Graphic::COLOR_BLUE);
-        Graphic::fillScreenWithBackgroundColor();
-        Console::setCursorPos(COORD(0, 0));
-        Console::clearBuffer();
-
-        Console::puts("System Error! Status: ");
-        Console::puts(StdLib::C::utohexstr(static_cast<u64>(status)));
-        Console::puts(" (");
-        Console::puts(statusToString(status));
-        Console::puts(")\n");
-        Console::puts("Param 1:");
-        Console::puts(StdLib::C::utohexstr(param1));
-        Console::puts("\n");
-        Console::puts("Param 2:");
-        Console::puts(StdLib::C::utohexstr(param2));
-        Console::puts("\n");
-        Console::puts("Param 3:");
-        Console::puts(StdLib::C::utohexstr(param3));
-        Console::puts("\n");
-        Console::puts("Param 4:");
-        Console::puts(StdLib::C::utohexstr(param4));
-        Console::puts("\n");
-        Console::puts("in file ");
-        Console::puts(file);
-        Console::puts(", line ");
-        Console::puts(StdLib::C::utos(line));
-        */
-
-        Kernel::DebugConsole::initDebugConsole(Boot::bootInfoPtr->FrameBufferInfo);
+        Kernel::DebugConsole::initDebugConsole(Boot::bootInfoPtr->FrameBufferInfo, Graphic::COLOR_WHITE, Graphic::COLOR_BLUE);
         DebugConsole::printStringRawDbg("System Error! Status: ");
         DebugConsole::printStringRawDbg(StdLib::C::utohexstr(static_cast<u64>(status)));
         DebugConsole::printStringRawDbg(" (");
@@ -99,7 +70,7 @@ namespace HailOS::Kernel
         DebugConsole::printStringRawDbg("\nline: ");
         DebugConsole::printStringRawDbg(StdLib::C::utos(line));
 
-        for(size_t i=0; i<1000000000000; i++);
+        for(volatile size_t i=0; i<1000000000; i++);
 
         Utility::reset();
     }

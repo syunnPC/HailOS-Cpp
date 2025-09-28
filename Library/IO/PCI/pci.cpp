@@ -48,7 +48,7 @@ namespace HailOS::IO::PCI
         }
 
         u8 offset = 0x10;
-        u32 original = readConfig32(loc.Bus, loc.Device, loc.Device, offset);
+        u32 original = readConfig32(loc.Bus, loc.Device, loc.Function, offset);
 
         writeConfig32(loc.Bus, loc.Device, loc.Function, offset, 0xFFFFFFFF);
         u32 mask = readConfig32(loc.Bus, loc.Device, loc.Function, offset);

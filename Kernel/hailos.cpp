@@ -137,13 +137,19 @@ extern "C" void main(HailOS::Kernel::BootInfo *info)
     Console::puts(" bytes\n");
     Graphic::BitmapImage::drawBitmap("picture1.bmp", Console::getCursorPos(), &rect);
     Console::setCursorPos({0, Console::getCursorPos().Y + rect.Height});
-    IO::USB::xHCI::initxHCI();
-    IO::USB::xHCI::xhciControllerSelfTest();
-    IO::USB::xHCI::dumpPortStatus();
-    Console::puts("lastStatus : ");
-    Console::puts(statusToString(getLastStatus()));
-    Console::puts("\n");
-
+    
+    if(!IO::USB::xHCI::initxHCI())
+    {
+        Console::puts("Failed to initialize xHCI Controller. lastStatus : ");
+        Console::puts(statusToString(getLastStatus()));
+        Console::puts("\n");
+    }
+    else
+    {
+        IO::USB::xHCI::xhciControllerSelfTest();
+        IO::USB::xHCI::dumpPortStatus();
+    }
+    
     IO::USB::xHCI::TRB ev{};
 
     while(true)

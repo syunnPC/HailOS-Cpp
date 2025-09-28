@@ -75,7 +75,7 @@ namespace HailOS::UI::Cursor
             if(gCursorImage[h] == nullptr || gBufferContentsUnderCursor[h] == nullptr)
             {
                 //TODO: これまでに確保したメモリの解放処理を実装
-                setLastStatus(Status::STATUS_ERROR);
+                setLastStatus(Status::STATUS_MEMORY_ALLOCATION_FAILED);
                 Kernel::Utility::enableInterrupts();
                 return false;
             }
@@ -153,6 +153,16 @@ namespace HailOS::UI::Cursor
         }
 
         Kernel::Utility::enableInterrupts();
+    }
+
+    bool isInitialized()
+    {
+        return sInitialized;
+    }
+
+    Graphic::Rectangle getCursorSize()
+    {
+        return gCursorSize;
     }
 
     //コンソールで再描画があった時にも、描画関数側で呼ぶようにする

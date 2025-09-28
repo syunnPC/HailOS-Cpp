@@ -23,6 +23,38 @@ namespace HailOS::MemoryManager
         return (b0<e1) && (b1 < e0);
     }
 
+    static inline bool pushFree(MemoryInfo& info, MemoryRegion region)
+    {
+        if(region.Length == 0)
+        {
+            return true;
+        }
+
+        if(info.FreeRegionCount >= MAX_REGIONS)
+        {
+            return false;
+        }
+
+        info.FreeMemory[info.FreeRegionCount++] = region;
+        return true;
+    }
+
+    static inline bool pushReserved(MemoryInfo& info, MemoryRegion region)
+    {
+        if(region.Length == 0)
+        {
+            return true;
+        }
+
+        if(info.FreeRegionCount >= MAX_REGIONS)
+        {
+            return false;
+        }
+
+        info.ReservedMemory[info.ReservedRegionCount++] = region;
+        return true;
+    }
+
     void ReserveRange(MemoryInfo& info, u64 base, u64 length)
     {
         u64 rb = base;
@@ -45,18 +77,29 @@ namespace HailOS::MemoryManager
             info.FreeMemory[i] = info.FreeMemory[info.FreeRegionCount - 1];
             info.FreeRegionCount--;
 
-            if(left.Length)
+            bool result = true;
+            if(left.Length != 0)
             {
-                info.FreeMemory[info.FreeRegionCount++] = left;
+                result &= pushFree(info, left);
             }
-
-            if(right.Length)
+            if(right.Length != 0)
             {
-                info.FreeMemory[info.FreeRegionCount++] = right;
+                result &= pushFree(info, right);
+            }
+            
+            if(!result)
+            {
+                break;
             }
         }
 
-        info.ReservedMemory[info.ReservedRegionCount++] = {rb, length};
+        pushReserved(info, {rb, length});
+    }
+
+    void* convertVirtToPhys(void* virt)
+    {
+        //1:1マップなので Virt == Phys
+        return virt;
     }
 
     bool initMemoryManager(MemoryInfo* info)
@@ -127,6 +170,10 @@ namespace HailOS::MemoryManager
             u64 len = sMemoryInfo->FreeMemory[i].Length;
 
             addr_t aligned_base = (base + ALLOC_ALIGN - 1) &~(ALLOC_ALIGN - 1);
+            if(aligned_base == 0) //nullをアロケートすると、無効だと勘違いされるので
+            {
+                aligned_base = ALLOC_ALIGN;
+            }
             u64 padding = aligned_base - base;
 
             if(len < size + padding)

@@ -547,6 +547,7 @@ namespace HailOS::Kernel::Debug
         Utility::haltProcessor();
     }
 
+    //指定した割り込みでトリプルフォールトを起こす、VMware Workstationのログで確認可能
     [[noreturn]] void dbgTripleFaultTrace(u8 interrupt)
     {
         kill(interrupt);

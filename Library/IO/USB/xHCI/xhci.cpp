@@ -5,6 +5,7 @@
 #include "status.hpp"
 #include "console.hpp"
 #include "cstring.hpp"
+#include "time.hpp"
 
 namespace HailOS::IO::USB::xHCI
 {
@@ -120,12 +121,13 @@ namespace HailOS::IO::USB::xHCI
     static void doorbell(u32 slot, u32 target = 0)
     {
         sMMIO.Db[slot] = target;
+        (void)sMMIO.Db[slot];
     }
 
     bool startController(void)
     {
+        //1. 初期化
         store32(&op()->USBCMD, load32(&op()->USBCMD) | (1 << 1));
-
         for (volatile int i = 0; i < 100000000; i++)
         {
             if((load32(&op()->USBSTS) & (1 << 11)) == 0)
@@ -134,9 +136,9 @@ namespace HailOS::IO::USB::xHCI
             }
         }
 
+        //2. DBCAA
         u32 max_slots = cap()->HCSParams1 & 0xFF;
         store32(&op()->CONFIG, max_slots ? max_slots : 8);
-
         u64* dcbaa = reinterpret_cast<u64*>(MemoryManager::allocAligned((max_slots + 1) * sizeof(u64), 4096));
         MemoryManager::fill(dcbaa, (max_slots + 1)* sizeof(u64), 0);
         store64(&op()->DCBAAP, reinterpret_cast<u64>(dcbaa));
@@ -154,11 +156,13 @@ namespace HailOS::IO::USB::xHCI
             dcbaa[0] = reinterpret_cast<u64>(arr);
         }
 
+        //コマンドリング
         auto cmd_mem = reinterpret_cast<TRB*>(MemoryManager::allocAligned(256*sizeof(TRB), 4096));
         MemoryManager::fill(cmd_mem, 256*sizeof(TRB), 0);
         initRing(sCmdRing, cmd_mem, 256);
         store64(&op()->CRCR, (reinterpret_cast<u64>(cmd_mem) & ~0x3FULL) | (sCmdRing.Cycle));
 
+        //イベントリング+ERST
         auto evt_mem = reinterpret_cast<TRB*>(MemoryManager::allocAligned(256 * sizeof(TRB), 4096));
         MemoryManager::fill(evt_mem, 256*sizeof(TRB), 0);
         initRing(sEventRing, evt_mem, 256);
@@ -172,13 +176,73 @@ namespace HailOS::IO::USB::xHCI
         it->IMOD = 0x0000FFFF;
         it->ERSTSZ = 1;
         it->ERSTBA = reinterpret_cast<u64>(sERST);
-        it->ERDP = reinterpret_cast<u64>(evt_mem);
-        it->IMAN = (1 << 1); //IE=1
+        it->ERDP = (reinterpret_cast<u64>(evt_mem) | (1ULL << 3)); //EHB=1
+        //it->IMAN = (1 << 1); //IE=1
+
+        store32(&op()->CONFIG, 1); //CONFIG=1で試す
+        
+        store32(&op()->USBCMD, load32(&op()->USBCMD) | (1 << 2)); //INTE = 1 : 割り込み許可
 
         store32(&op()->USBCMD, load32(&op()->USBCMD) | 1); //RS=1
         sEventDeq = evt_mem;
         sEventCycle = 1;
         return true;
+    }
+
+    static void getControllerOwnership(const PCI::PCILocation& loc)
+    {
+        u32 hccparams1 = cap()->HCCParams1;
+        u32 xecp = (hccparams1 >> 16) & 0xFFFF;
+        if(xecp == 0)
+        {
+            return;
+        }
+
+        u32 offset = xecp << 2;
+
+        while(offset)
+        {
+            volatile u32* ec = reinterpret_cast<volatile u32*>(sMMIO.Cap + offset);
+            u32 v = *ec;
+            u8 capId = v & 0xFF;
+            u8 next = (v >> 8) & 0xFF;
+
+            if(capId == 1)
+            {
+                volatile u32* legsup = ec;
+                volatile u32* legctlsts = ec + 1;
+
+                u32 before = *legsup;
+
+                *legsup = before | (1u << 24);
+
+                for(int i=0; i<1000000; i++)
+                {
+                    if(((*legsup) & (1u << 16)) == 0) //BIOS Ownedチェック
+                    {
+                        break;
+                    }
+                }
+
+                u32 after = *legsup;
+
+                Console::puts("xHCI: USBLEGSUP before=0x");
+                Console::puts(StdLib::C::utohexstr(before));
+                Console::puts(" after=0x");
+                Console::puts(StdLib::C::utohexstr(after));
+                Console::puts("\n");
+
+                *legctlsts = 0;
+                return;
+            }
+
+            if(!next)
+            {
+                break;
+            }
+
+            offset = next << 2;
+        }
     }
 
     bool portResetWait(u32 portIndex)
@@ -350,7 +414,7 @@ namespace HailOS::IO::USB::xHCI
     static bool waitEnableSlotComplete(u8* outSlotId)
     {
         TRB ev{};
-        for(int spin=0; spin<1000000; spin++)
+        for(int spin=0; spin<1000; spin++)
         {
             if(!pollEvent(&ev))
             {
@@ -378,6 +442,8 @@ namespace HailOS::IO::USB::xHCI
                     return false;
                 }
             }
+
+            Utility::Time::Sleep(1);
 
             //TODO:PortStatusChangeやTransferの場合
         }
@@ -432,9 +498,11 @@ namespace HailOS::IO::USB::xHCI
 
         if(!mmioInfoInit(sControllerBAR0))
         {
-            setLastStatus(Status::STATUS_XHCI_ERROR);
+            setLastStatus(Status::STATUS_USB_ERROR);
             return false;
         }
+
+        getControllerOwnership(sControllerLoc);
 
         /*
         {

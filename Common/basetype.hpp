@@ -17,3 +17,8 @@ static_assert(sizeof(u16) == 2, "sizeof(u16) == 2 not satisfied");
 static_assert(sizeof(u32) == 4, "sizeof(u32) == 4 not satisfied");
 static_assert(sizeof(u64) == 8, "sizeof(u64) == 8 not satisfied");
 
+#ifndef CHAR_BIT
+#define CHAR_BIT 8
+#else
+static_assert(CHAR_BIT == 8, "CHAR_BIT must be 8.");
+#endif

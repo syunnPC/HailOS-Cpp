@@ -19,4 +19,6 @@ namespace HailOS::UI::Cursor
     bool loadCursor(const Graphic::RGB** source, Graphic::Rectangle size);
     Graphic::Point getCursorPosition();
     void drawCursor();
+    bool isInitialized();
+    Graphic::Rectangle getCursorSize();
 }

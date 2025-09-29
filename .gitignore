@@ -1,2 +1,12 @@
+#VSCode用ディレクトリ
 /.vscode/
+#ビルド結果のディレクトリ
 /Build/
+#objdump -d kernel.elfの出力用
+/a.txt
+
+#VHDイメージ（デバッグ用）
+/hailos.vhd
+#デバッグ用ファイル（デバッグ用スクリプトが完成すれば公開）
+/test.sh
+/debug_qemu.sh

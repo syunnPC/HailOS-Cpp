@@ -5,6 +5,7 @@
 #include "status.hpp"
 #include "cursor.hpp"
 #include "kernellib.hpp"
+#include "kd.hpp"
 
 #define CALC_PIXEL_OFFSET(x, y) ((y * HailOS::Graphic::sGraphicInfo->PixelsPerScanLine + x) * HailOS::Graphic::PIXEL_SIZE)
 
@@ -87,6 +88,21 @@ namespace HailOS::Graphic
         addr_t offset = CALC_PIXEL_OFFSET(location.X, location.Y);
         FrameBufferColor *p = reinterpret_cast<FrameBufferColor *>(sGraphicInfo->FrameBufferBase + offset);
         *p = dest_color;
+
+        if(UI::Cursor::isInitialized)
+        {
+            Point loc = UI::Cursor::getCursorPosition();
+            Rectangle size = UI::Cursor::getCursorSize();
+            u64 x_min = loc.X;
+            u64 x_max = loc.X + size.Width;
+            u64 y_min = loc.Y;
+            u64 y_max = loc.Y + size.Height;
+
+            if(x_min <= location.X && location.X <= x_max && y_min <= location.Y && location.Y <= y_max)
+            {
+                UI::Cursor::updateBufferUnderCursor();
+            }
+        }
         return true;
     }
 

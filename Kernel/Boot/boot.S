@@ -4,10 +4,11 @@
 .global kernel_stack_bottom
 
 _start:
+    cli
     movabs $kernel_stack_top, %rsp
     sub $8, %rsp
     cld
-    call main
+    jmp main
 hang_loop:
     cli
     hlt

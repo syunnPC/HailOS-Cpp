@@ -5,9 +5,9 @@
 namespace HailOS::MemoryManager
 {
     constexpr auto PAGE_SIZE = 4096;
-    constexpr auto MAX_FREE_REGIONS = 64;
+    constexpr auto MAX_REGIONS = 64;
 
-    struct FreeRegion
+    struct MemoryRegion
     {
         addr_t Base;
         size_t Length;
@@ -15,7 +15,9 @@ namespace HailOS::MemoryManager
 
     struct MemoryInfo
     {
-        FreeRegion FreeMemory[MAX_FREE_REGIONS];
+        MemoryRegion FreeMemory[MAX_REGIONS];
         u64 FreeRegionCount;
+        MemoryRegion ReservedMemory[MAX_REGIONS];
+        u64 ReservedRegionCount;
     } PACKED;
 }

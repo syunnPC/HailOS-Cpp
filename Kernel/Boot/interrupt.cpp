@@ -4,12 +4,18 @@
 #include "ps2mouse.hpp"
 #include "ps2kbd.hpp"
 #include "pic.hpp"
+#include "kd.hpp"
 
 #define DEFINE_HANDLER(vec) __attribute__((interrupt)) void handler##vec(HailOS::Kernel::Boot::InterruptFrame* frame){HailOS::Kernel::Boot::handler(frame, vec);}
 #define DEFINE_HANDLER_ERRORCODE(vec)  __attribute__((interrupt)) void handler##vec(HailOS::Kernel::Boot::InterruptFrame* frame, u64 errorcode){HailOS::Kernel::Boot::handlerErrorCode(frame, vec, errorcode);}
 
 namespace HailOS::Kernel::Boot
 {
+    __attribute__((interrupt)) void handlerRet(InterruptFrame* frame)
+    {
+        return;
+    }
+
     void handler(InterruptFrame* frame, u64 vec)
     {
         PANIC(static_cast<Status>(0xC0004000 + vec), frame->RIP, frame->RSP, frame->CS, frame->SS);
